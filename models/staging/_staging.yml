@@ -200,5 +200,5 @@ models:
 
   - name: stg_broken_reference_demo
     description: >
-      Demo-only model with an intentionally misspelled ref target. The matching
-      fix branch points it at stg_orders.
+      Demo-only model after correcting its dependency to the existing
+      stg_orders model.

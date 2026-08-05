@@ -1,1 +1,1 @@
-select * from {{ ref('stg_orderz') }}
+select * from {{ ref('stg_orders') }}
