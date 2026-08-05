@@ -99,6 +99,14 @@ uv run pytest tests/test_circleci_config.py
 circleci config validate .circleci/config.yml
 ```
 
+### Connected demo project
+
+- CircleCI project: `gh/townerhale-circleci/groupe-dynamite-dbt-demo`
+- Credential context: `snowflake-dbt-demo` (created empty; populate it only
+  after the Snowflake service identity is provisioned)
+- GitHub namespace: personal account, so the demo uses a visible manual
+  approval hold and does not claim organization/team-restricted enforcement
+
 ## Running against Snowflake (later)
 
 1. Copy `.env.example` to `.env` and fill in real values (never commit `.env`).
