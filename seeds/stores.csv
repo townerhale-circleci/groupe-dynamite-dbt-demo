@@ -1,0 +1,7 @@
+store_id,store_name,brand_id,store_type,city,province,country,opened_date
+1,Garage - CF Toronto Eaton Centre,1,physical,Toronto,ON,CA,2015-03-01
+2,Garage - Fairview Pointe-Claire,1,physical,Montreal,QC,CA,2016-06-15
+3,Dynamite - CF Pacific Centre,2,physical,Vancouver,BC,CA,2014-09-20
+4,Dynamite - Rideau Centre,2,physical,Ottawa,ON,CA,2017-11-05
+5,Garage Online,1,online,Montreal,QC,CA,2012-01-01
+6,Dynamite Online,2,online,Montreal,QC,CA,2012-01-01

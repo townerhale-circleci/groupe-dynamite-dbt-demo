@@ -1,0 +1,6 @@
+return_id,order_id,order_item_id,product_id,return_date,quantity_returned,return_amount,return_reason
+1,5,8,2,2024-01-20,1,59.95,changed_mind
+2,5,9,3,2024-01-20,1,64.95,defect
+3,10,16,6,2024-02-08,1,99.95,size
+4,16,25,3,2024-03-10,1,64.95,changed_mind
+5,7,12,7,2024-01-28,1,62.45,defect

@@ -1,0 +1,24 @@
+[project]
+name = "groupe-dynamite-dbt-demo"
+version = "0.1.0"
+description = "Synthetic fashion-retail dbt Core + Snowflake demo for Groupe Dynamite (Garage & Dynamite brands)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dbt-core>=1.9,<2.0",
+    "dbt-snowflake>=1.9,<2.0",
+    "sqlfluff>=3.3,<4.0",
+    "pytest>=8.0,<9.0",
+    "pyyaml>=6.0,<7.0",
+]
+
+[tool.uv]
+# This repository is an application (dbt project + tooling), not a distributable
+# Python package, so it is not built or installed into the environment.
+package = false
+
+[tool.pytest.ini_options]
+# Allow `from scripts... import ...` and `from tests... import ...` without a build step.
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"

@@ -1,0 +1,199 @@
+version: 2
+
+models:
+  - name: stg_brands
+    description: Cleaned, typed brand dimension (one row per brand).
+    columns:
+      - name: brand_id
+        description: Brand primary key.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: stg_stores
+    description: Cleaned store dimension including physical and online banners.
+    columns:
+      - name: store_id
+        description: Store primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Owning brand.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: store_type
+        description: Physical store or online banner.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["physical", "online"]
+
+  - name: stg_products
+    description: Cleaned product/SKU dimension with typed prices.
+    columns:
+      - name: product_id
+        description: Product primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: sku
+        description: Stock keeping unit code.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Owning brand.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: unit_price
+        description: List selling price per unit.
+        data_tests:
+          - non_negative
+      - name: unit_cost
+        description: Cost per unit.
+        data_tests:
+          - non_negative
+
+  - name: stg_customers
+    description: Cleaned customer dimension with loyalty tier.
+    columns:
+      - name: customer_id
+        description: Customer primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Primary brand affinity.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: loyalty_tier
+        description: Loyalty program tier.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["none", "silver", "gold"]
+
+  - name: stg_orders
+    description: Cleaned order headers with typed order date.
+    columns:
+      - name: order_id
+        description: Order primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: Ordering customer.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: store_id
+        description: Associated store.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: channel
+        description: Sales channel.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["store", "ecommerce", "mobile"]
+      - name: order_status
+        description: Order lifecycle status.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["completed", "cancelled", "returned"]
+
+  - name: stg_order_items
+    description: Cleaned order lines with derived gross and net amounts.
+    columns:
+      - name: order_item_id
+        description: Order line primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_id
+        description: Parent order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: product_id
+        description: Purchased product.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: net_amount
+        description: Line net sales (gross minus discount).
+        data_tests:
+          # Retail business rule: line-level net sales must never be negative.
+          - not_null
+          - non_negative
+
+  - name: stg_returns
+    description: Cleaned return transactions tied to order lines.
+    columns:
+      - name: return_id
+        description: Return primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_item_id
+        description: Returned order line.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_order_items')
+                field: order_item_id
+      - name: return_amount
+        description: Refunded amount for the return.
+        data_tests:
+          # Retail business rule: a return amount must be a valid, non-negative value.
+          - not_null
+          - non_negative
+
+  - name: stg_inventory
+    description: Cleaned inventory snapshot with derived available quantity.
+    columns:
+      - name: inventory_id
+        description: Inventory row primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: store_id
+        description: Store holding inventory.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: product_id
+        description: Product being counted.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: quantity_available
+        description: On-hand minus reserved units.
+        data_tests:
+          - not_null
+          - non_negative

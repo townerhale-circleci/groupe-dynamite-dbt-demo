@@ -1,0 +1,120 @@
+version: 2
+
+models:
+  - name: fct_daily_sales
+    description: >
+      Daily sales fact at brand x channel x order-date grain. Cancelled orders
+      are excluded. Powers trend reporting across store, ecommerce, and mobile.
+    columns:
+      - name: daily_sales_key
+        description: Surrogate grain key (order_date | brand_id | channel).
+        data_tests:
+          - not_null
+          - unique
+      - name: order_date
+        description: Calendar date of the sales.
+        data_tests:
+          - not_null
+      - name: channel
+        description: Sales channel.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["store", "ecommerce", "mobile"]
+      - name: gross_sales
+        description: Sum of gross line amounts.
+        data_tests:
+          - non_negative
+      - name: net_sales
+        description: Sum of net line amounts (gross minus discount).
+        data_tests:
+          # Retail business rule: aggregated net sales must never be negative.
+          - not_null
+          - non_negative
+
+  - name: fct_store_performance
+    description: >
+      Store performance fact at store grain (one row per store). Includes units,
+      gross/net sales, and average order value. Cancelled orders excluded.
+    columns:
+      - name: store_id
+        description: Store primary key.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: net_sales
+        description: Sum of net line amounts for the store.
+        data_tests:
+          - non_negative
+      - name: avg_order_value
+        description: Net sales divided by distinct order count.
+        data_tests:
+          - non_negative
+
+  - name: fct_inventory_availability
+    description: >
+      Inventory availability fact at store x product x snapshot grain, with an
+      availability flag derived from on-hand minus reserved units.
+    columns:
+      - name: inventory_id
+        description: Inventory row primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: store_id
+        description: Store holding inventory.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: product_id
+        description: Product being counted.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: quantity_available
+        description: On-hand minus reserved units.
+        data_tests:
+          - not_null
+          - non_negative
+
+  - name: fct_return_rates
+    description: >
+      Return-rate fact at product grain. Combines units sold (excluding
+      cancelled orders) with units returned to compute a return rate.
+    columns:
+      - name: product_id
+        description: Product primary key.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Owning brand.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: units_sold
+        description: Total units sold for the product.
+        data_tests:
+          - non_negative
+      - name: units_returned
+        description: Total units returned for the product.
+        data_tests:
+          - non_negative
+      - name: return_amount
+        description: Total refunded amount for the product.
+        data_tests:
+          - non_negative
+      - name: return_rate
+        description: Units returned divided by units sold.
+        data_tests:
+          - non_negative

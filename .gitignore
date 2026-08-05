@@ -1,0 +1,22 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# dbt
+dbt_packages/
+logs/
+target/
+.user.yml
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
