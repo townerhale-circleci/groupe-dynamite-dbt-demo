@@ -126,3 +126,17 @@ def test_bootstrap_and_teardown_templates_are_prefixed_and_idempotent() -> None:
     assert "GROUPE_DYNAMITE_DEMO" in teardown
     assert "IF NOT EXISTS" in bootstrap
     assert "IF EXISTS" in teardown
+
+
+def test_bootstrap_can_create_all_ci_target_schemas() -> None:
+    bootstrap = (PROJECT_ROOT / "SQL" / "bootstrap.sql").read_text(encoding="utf-8")
+
+    for schema in ("RAW", "DEV", "PROD"):
+        assert (
+            f"CREATE SCHEMA IF NOT EXISTS GROUPE_DYNAMITE_DEMO.{schema}"
+            in bootstrap
+        )
+    assert (
+        "GRANT CREATE SCHEMA ON DATABASE GROUPE_DYNAMITE_DEMO "
+        "TO ROLE GROUPE_DYNAMITE_DEMO_ROLE"
+    ) in " ".join(bootstrap.split())

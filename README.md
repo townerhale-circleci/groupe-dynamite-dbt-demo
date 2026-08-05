@@ -72,9 +72,10 @@ Key behaviours:
 - **Per-PR schema** is resolved at run time by
   `scripts/resolve_pr_schema.py` (numeric PR → sanitized branch → build number),
   always `PR_…`, uppercase `A-Z0-9_`, length-capped, never `DEV`/`PROD`.
-- **Cleanup** uses modern flexible `requires` (`dbt-pr-build: terminal`) so it
-  runs after the build reaches any terminal status (success, failed, canceled,
-  unauthorized, not_run) and always tears the schema down. The
+- **Cleanup** uses modern flexible `requires` so it runs after any state in
+  which `dbt-pr-build` could have created a schema (success, failed, canceled,
+  or unauthorized). It excludes `not_run`, because an offline-gate failure
+  creates no PR schema and must not attach Snowflake credentials. The
   `drop_pr_schema` macro refuses anything not prefixed `PR_` and refuses
   `DEV`/`PROD`.
 - **Artifacts** (`target/manifest.json`, `target/run_results.json`,
@@ -108,6 +109,24 @@ circleci config validate .circleci/config.yml
 - GitHub namespace: personal account, so the demo uses a visible manual
   approval hold and does not claim organization/team-restricted enforcement
 
+## Demo documentation
+
+Operator-facing docs live in [`docs/`](docs/README.md):
+
+- [Demo runbook](docs/demo-runbook.md) — exact 15-minute script (blocked unsafe
+  PR → actionable failure with artifacts → main DEV → approval → PROD).
+- [Architecture](docs/architecture.md) — environment diagram (Mermaid).
+- [Preflight checklist](docs/preflight-checklist.md) — verify before the demo.
+- [Scenario catalog](docs/scenario-catalog.md) — the four failure/fix branches
+  and safe fast-forward / restore commands.
+- [Recovery & fallback](docs/recovery-fallback.md) — what to do when something
+  breaks live.
+- [Cleanup](docs/cleanup.md) — tear down schemas, secrets, branches, Snowflake.
+- [POC extension notes](docs/poc-extension.md) — turning the demo into a POC.
+- [Rehearsal status](docs/rehearsal-status.md) — what is verified vs. not.
+- [MCP backup flow](docs/mcp-backup-flow.md) — status/log retrieval and an
+  operator-authorized rerun without source-code edits.
+
 ## Running against Snowflake (later)
 
 1. Copy `.env.example` to `.env` and fill in real values (never commit `.env`).
@@ -116,4 +135,5 @@ circleci config validate .circleci/config.yml
 3. `uv run dbt seed`, then `uv run dbt build` (runs models + tests).
 4. Tear down with `SQL/teardown.sql` when finished.
 
-Detailed demo documentation will be added later.
+Detailed demo documentation is in [`docs/`](docs/README.md) — start with the
+[runbook](docs/demo-runbook.md) and [preflight checklist](docs/preflight-checklist.md).

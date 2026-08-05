@@ -189,6 +189,10 @@ workflows:
       - dbt-compile:
           context:
             - snowflake-dbt-demo
+          requires:
+            - validate-model-names
+            - python-tests
+            - sqlfluff
       - dbt-pr-build:
           # Snowflake credentials come ONLY from this context.
           context:
@@ -201,11 +205,15 @@ workflows:
       - dbt-pr-cleanup:
           context:
             - snowflake-dbt-demo
-          # Modern flexible requires: run once dbt-pr-build reaches a TERMINAL
-          # status (success, failed, canceled, unauthorized, or not_run) so the
-          # disposable schema is always cleaned up, even after a failed build.
+          # Run after any state in which dbt-pr-build could have created a
+          # schema. Excluding not_run preserves the credential boundary when an
+          # offline gate blocks the build before Snowflake work begins.
           requires:
-            - dbt-pr-build: terminal
+            - dbt-pr-build:
+                - success
+                - failed
+                - canceled
+                - unauthorized
 
   # main promotion workflow: runs on main ONLY.
   main:

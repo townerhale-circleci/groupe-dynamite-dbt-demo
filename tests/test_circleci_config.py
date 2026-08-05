@@ -137,6 +137,11 @@ def test_snowflake_context_only_on_credentialed_jobs(config: dict) -> None:
                 )
 
 
+def test_offline_gates_complete_before_credentialed_compile(config: dict) -> None:
+    compile_job = _workflow_job_entry(config, "pr", "dbt-compile")
+    assert set(compile_job["requires"]) == OFFLINE_JOBS
+
+
 def test_offline_jobs_never_get_context(config: dict) -> None:
     for job_name in OFFLINE_JOBS:
         for workflow in ("pr", "main"):
@@ -238,11 +243,21 @@ def test_pytest_junit_results_stored(config: dict) -> None:
 
 # --- cleanup dependency + safeguards ---------------------------------------
 
-def test_cleanup_uses_flexible_terminal_requires(config: dict) -> None:
+def test_cleanup_uses_flexible_post_build_requires(config: dict) -> None:
     cleanup = _workflow_job_entry(config, "pr", "dbt-pr-cleanup")
     requires = cleanup["requires"]
-    # Modern flexible requires remains a sequence; an item maps job to status.
-    assert requires == [{"dbt-pr-build": "terminal"}]
+    # Cleanup runs after every state in which a build could have created a
+    # schema, but not `not_run` (offline-gate failures create no schema).
+    assert requires == [
+        {
+            "dbt-pr-build": [
+                "success",
+                "failed",
+                "canceled",
+                "unauthorized",
+            ]
+        }
+    ]
 
 
 def test_cleanup_invokes_guarded_drop_macro(config: dict) -> None:
