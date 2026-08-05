@@ -107,8 +107,8 @@ circleci config validate .circleci/config.yml
   (followed, so GitHub pushes emit CircleCI builds and status updates)
 - GitHub visibility: public by explicit operator choice; strict CircleCI checks
   are required on `main` and a red check was verified to block PR #1
-- Credential context: `snowflake-dbt-demo` (created empty; populate it only
-  after the Snowflake service identity is provisioned)
+- Credential context: `snowflake-dbt-demo` (populated with the least-privilege
+  key-pair service identity; values remain masked)
 - GitHub namespace: personal account, so the demo uses a visible manual
   approval hold and does not claim organization/team-restricted enforcement
 
@@ -130,12 +130,12 @@ Operator-facing docs live in [`docs/`](docs/README.md):
 - [MCP backup flow](docs/mcp-backup-flow.md) — status/log retrieval and an
   operator-authorized rerun without source-code edits.
 
-## Running against Snowflake (later)
+## Running against Snowflake
 
 1. Copy `.env.example` to `.env` and fill in real values (never commit `.env`).
-2. Review and run `SQL/bootstrap.sql` manually to provision least-privilege
-   `GROUPE_DYNAMITE_DEMO`-prefixed objects.
-3. `uv run dbt seed`, then `uv run dbt build` (runs models + tests).
+2. Review and run `SQL/bootstrap.sql` to provision least-privilege prefixed
+   objects and a key-pair service user.
+3. Set `DBT_SNOWFLAKE_PRIVATE_KEY_PATH` locally, then run `uv run dbt build`.
 4. Tear down with `SQL/teardown.sql` when finished.
 
 Detailed demo documentation is in [`docs/`](docs/README.md) — start with the
