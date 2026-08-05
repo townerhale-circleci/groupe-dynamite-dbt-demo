@@ -11,7 +11,7 @@ _Last updated: 2026-08-05._
 ## ✅ Verified
 
 ### Local offline validation
-- **`uv run pytest` → 101 passed.** Full offline suite green (project contract,
+- **`uv run pytest` → 102 passed.** Full offline suite green (project contract,
   PR-schema resolver, CircleCI config contract, seed integrity, model-name
   validator).
 - **Model-name gate** (`scripts/validate_model_names.py models`) passes on the
@@ -29,8 +29,8 @@ _Last updated: 2026-08-05._
 - **Offline jobs passed:** `validate-model-names`, `python-tests`, and
   `sqlfluff` ran green without the context.
 - **Historical caveat:** pipeline #2 ran before the offline-to-compile ordering
-  guard was added, so `dbt-compile` also started and failed because the context
-  lacks `DBT_SNOWFLAKE_ACCOUNT`. `dbt-pr-build` was `not_run`;
+  guard and before the context was populated, so `dbt-compile` failed on
+  `DBT_SNOWFLAKE_ACCOUNT`. `dbt-pr-build` was `not_run`;
   `dbt-pr-cleanup` ran under the former `terminal` dependency and failed on the
   same missing variable. Main promotion jobs were not part of this branch run.
 - The current config fixes that ordering; pipeline #11 below verifies it live.
@@ -64,12 +64,24 @@ _Last updated: 2026-08-05._
   from an admin or a writable non-personal sandbox database with CREATE
   SCHEMA/TABLE/VIEW, plus non-interactive CI authentication.
 
+### Isolated trial Snowflake environment
+- Provisioned the dedicated X-Small warehouse, database, prefixed RAW/DEV/PROD
+  schemas, least-privilege role, and `TYPE=SERVICE` user from the reviewed
+  bootstrap design.
+- Snowflake CLI and `dbt debug` both authenticated as the service user with
+  `SNOWFLAKE_JWT`; the private key remains outside the repository.
+- A real DEV `dbt build` completed successfully in about 19 seconds:
+  **146 PASS, 0 WARN, 0 ERROR, 0 SKIP** across 8 seeds, 12 models, and 126 data
+  tests.
+- The CircleCI context now contains the seven required variable names with
+  masked values. A live CI run is still required before calling the
+  credentialed CI path verified.
+
 ---
 
 ## ❌ Not yet verified
 
-Do **not** claim these as working. They require a writable non-personal
-Snowflake sandbox and approved non-interactive CI authentication.
+Do **not** claim these as working until their live CI runs complete.
 
 - **Snowflake live `dbt build`** into a
   `GROUPE_DYNAMITE_DEMO_PR_…` schema (the real Moment 2 build).
@@ -114,18 +126,20 @@ required checks and team restrictions.
 
 | Capability | Status | Evidence / blocker |
 |------------|:------:|--------------------|
-| Local pytest (101) | ✅ | offline suite green |
+| Local pytest (102) | ✅ | offline suite green |
 | Model-name gate | ✅ | passes clean; fails on uppercase |
 | SQLFluff lint | ✅ | Snowflake dialect, offline |
 | `dbt parse` | ✅ | graph valid, no warehouse |
 | CircleCI config validate | ✅ | offline contract tests pass |
 | Offline CI jobs (pipeline #2) | ✅ | green, no context |
 | Live offline-before-compile ordering | ✅ | pipeline #11; cleanup skipped `not_run` build |
-| Credentialed CI path | ⚠️ | compile blocked on missing `DBT_SNOWFLAKE_ACCOUNT`; build not run |
+| Credentialed CI path | ⚠️ | context populated; awaiting a fresh pipeline |
 | MCP identifies failing model | ✅ | pipeline #3 + Cursor MCP → `Customer_Lifetime_Value.sql` |
 | Snowflake browser SSO / `dbt debug` | ✅ | connection succeeded |
 | Isolated fallback schemas | ⚠️ | created, but personal DB forbids tables |
-| Live Snowflake PR build | ❌ | needs writable non-personal DB + CI auth |
+| Trial service-user `dbt debug` | ✅ | key-pair JWT authentication succeeded |
+| Live Snowflake DEV build | ✅ | 146/146 successful |
+| Live Snowflake PR build | ❌ | fresh credentialed CI pipeline required |
 | Approval hold end-to-end | ❌ | needs live `main` run |
 | PROD promotion | ❌ | needs live `main` run |
 | GitHub enforced merge block | ✅ | strict required checks; PR #1 reported BLOCKED |

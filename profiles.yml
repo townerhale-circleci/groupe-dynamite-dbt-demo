@@ -11,6 +11,8 @@ groupe_dynamite:
       account: "{{ env_var('DBT_SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('DBT_SNOWFLAKE_USER') }}"
       password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD', '') }}"
+      private_key: "{{ env_var('DBT_SNOWFLAKE_PRIVATE_KEY', '') }}"
+      private_key_path: "{{ env_var('DBT_SNOWFLAKE_PRIVATE_KEY_PATH', '') }}"
       authenticator: "{{ env_var('DBT_SNOWFLAKE_AUTHENTICATOR', 'snowflake') }}"
       role: "{{ env_var('DBT_SNOWFLAKE_ROLE') }}"
       warehouse: "{{ env_var('DBT_SNOWFLAKE_WAREHOUSE') }}"
