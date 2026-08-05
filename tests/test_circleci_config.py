@@ -137,6 +137,11 @@ def test_snowflake_context_only_on_credentialed_jobs(config: dict) -> None:
                 )
 
 
+def test_offline_gates_complete_before_credentialed_compile(config: dict) -> None:
+    compile_job = _workflow_job_entry(config, "pr", "dbt-compile")
+    assert set(compile_job["requires"]) == OFFLINE_JOBS
+
+
 def test_offline_jobs_never_get_context(config: dict) -> None:
     for job_name in OFFLINE_JOBS:
         for workflow in ("pr", "main"):
@@ -194,8 +199,14 @@ def test_manual_approval_hold_between_dev_and_prod(config: dict) -> None:
 
 
 def test_main_dev_and_prod_use_reserved_schemas(config: dict) -> None:
-    assert config["jobs"]["dbt-main-dev"]["environment"]["DBT_SCHEMA"] == "DEV"
-    assert config["jobs"]["dbt-main-prod"]["environment"]["DBT_SCHEMA"] == "PROD"
+    assert (
+        config["jobs"]["dbt-main-dev"]["environment"]["DBT_SCHEMA"]
+        == "GROUPE_DYNAMITE_DEMO_DEV"
+    )
+    assert (
+        config["jobs"]["dbt-main-prod"]["environment"]["DBT_SCHEMA"]
+        == "GROUPE_DYNAMITE_DEMO_PROD"
+    )
 
 
 # --- artifact preservation --------------------------------------------------
@@ -238,11 +249,21 @@ def test_pytest_junit_results_stored(config: dict) -> None:
 
 # --- cleanup dependency + safeguards ---------------------------------------
 
-def test_cleanup_uses_flexible_terminal_requires(config: dict) -> None:
+def test_cleanup_uses_flexible_post_build_requires(config: dict) -> None:
     cleanup = _workflow_job_entry(config, "pr", "dbt-pr-cleanup")
     requires = cleanup["requires"]
-    # Modern flexible requires remains a sequence; an item maps job to status.
-    assert requires == [{"dbt-pr-build": "terminal"}]
+    # Cleanup runs after every state in which a build could have created a
+    # schema, but not `not_run` (offline-gate failures create no schema).
+    assert requires == [
+        {
+            "dbt-pr-build": [
+                "success",
+                "failed",
+                "canceled",
+                "unauthorized",
+            ]
+        }
+    ]
 
 
 def test_cleanup_invokes_guarded_drop_macro(config: dict) -> None:
@@ -259,9 +280,9 @@ def test_pr_build_resolves_schema_and_builds(config: dict) -> None:
 
 def test_drop_macro_is_guarded_to_pr_schemas() -> None:
     macro = (PROJECT_ROOT / "macros" / "drop_pr_schema.sql").read_text(encoding="utf-8")
-    assert "startswith('PR_')" in macro
+    assert "startswith('GROUPE_DYNAMITE_DEMO_PR_')" in macro
     assert "raise_compiler_error" in macro
-    assert "'DEV', 'PROD'" in macro or "'PROD'" in macro
+    assert "'GROUPE_DYNAMITE_DEMO_PROD'" in macro
     assert "drop schema if exists" in macro
 
 

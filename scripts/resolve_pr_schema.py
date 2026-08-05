@@ -11,15 +11,15 @@ Resolution order (first usable wins):
     3. The build number (``CIRCLE_BUILD_NUM``).
 
 Safety guarantees (enforced regardless of source):
-    * The name ALWAYS begins with ``PR_`` -- so it can never collide with the
-      promotion schemas ``DEV`` / ``PROD`` and is trivially recognisable by the
-      guarded cleanup macro/job.
+    * The name ALWAYS begins with ``GROUPE_DYNAMITE_DEMO_PR_`` so every object
+      remains identifiable inside a least-privilege fallback database and can
+      never collide with the DEV / PROD promotion schemas.
     * The name contains ONLY ``A-Z``, ``0-9`` and ``_`` (uppercased).
     * The name never exceeds Snowflake's 255-char identifier limit.
 
 Usage (CLI):
     python scripts/resolve_pr_schema.py
-    # prints e.g. PR_42 to stdout; exit 1 (message on stderr) if unresolvable.
+    # prints e.g. GROUPE_DYNAMITE_DEMO_PR_42 to stdout; exit 1 if unresolvable.
 """
 from __future__ import annotations
 
@@ -33,13 +33,19 @@ MAX_IDENTIFIER_LENGTH = 255
 
 # Mandatory prefix. Guarantees the schema is never DEV/PROD and is recognisable
 # as a disposable per-PR schema by the cleanup safeguards.
-SCHEMA_PREFIX = "PR_"
+SCHEMA_PREFIX = "GROUPE_DYNAMITE_DEMO_PR_"
 
 # The full resolved schema must match this (uppercase, alnum + underscore).
-SCHEMA_PATTERN = re.compile(r"^PR_[A-Z0-9_]+$")
+SCHEMA_PATTERN = re.compile(r"^GROUPE_DYNAMITE_DEMO_PR_[A-Z0-9_]+$")
 
 # Reserved promotion schemas that must never be produced here.
-RESERVED_SCHEMAS = frozenset({"DEV", "PROD"})
+RESERVED_SCHEMAS = frozenset(
+    {
+        "GROUPE_DYNAMITE_DEMO_RAW",
+        "GROUPE_DYNAMITE_DEMO_DEV",
+        "GROUPE_DYNAMITE_DEMO_PROD",
+    }
+)
 
 _PR_URL_TAIL = re.compile(r"/(\d+)/?$")
 _NON_IDENTIFIER = re.compile(r"[^A-Z0-9]+")
@@ -72,7 +78,7 @@ def _numeric_pr_token(env: Mapping[str, str]) -> str | None:
 
 
 def resolve_pr_schema(env: Mapping[str, str] | None = None) -> str:
-    """Return the safe uppercase ``PR_...`` schema for the current CI run.
+    """Return the safe prefixed uppercase schema for the current CI run.
 
     Raises:
         ValueError: if none of PR id / branch / build number is available.
