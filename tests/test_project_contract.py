@@ -71,6 +71,8 @@ def test_profile_supports_browser_sso_without_committed_credentials() -> None:
 
     assert "DBT_SNOWFLAKE_AUTHENTICATOR" in output["authenticator"]
     assert "env_var(" in output["password"]
+    assert "DBT_SNOWFLAKE_PRIVATE_KEY" in output["private_key"]
+    assert "DBT_SNOWFLAKE_PRIVATE_KEY_PATH" in output["private_key_path"]
 
 
 def test_all_model_filenames_are_snake_case() -> None:
@@ -153,3 +155,12 @@ def test_bootstrap_can_create_all_ci_target_schemas() -> None:
         "GRANT CREATE SCHEMA ON DATABASE GROUPE_DYNAMITE_DEMO "
         "TO ROLE GROUPE_DYNAMITE_DEMO_ROLE"
     ) in " ".join(bootstrap.split())
+
+
+def test_bootstrap_uses_key_pair_service_authentication() -> None:
+    bootstrap = (PROJECT_ROOT / "SQL" / "bootstrap.sql").read_text(encoding="utf-8")
+    normalized = " ".join(bootstrap.split())
+
+    assert "TYPE = SERVICE" in normalized
+    assert "RSA_PUBLIC_KEY = '<REPLACE_WITH_RSA_PUBLIC_KEY>'" in normalized
+    assert "PASSWORD =" not in normalized
