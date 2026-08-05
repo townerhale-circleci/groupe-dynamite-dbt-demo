@@ -6,8 +6,8 @@
 -- identify and tear down. Statements use IF NOT EXISTS to be idempotent.
 --
 -- HOW TO USE: review every statement, then execute manually in a Snowflake
--- worksheet with an appropriately privileged role. Replace <SET_A_STRONG_PASSWORD>
--- and grant only what your security policy allows.
+-- worksheet with an appropriately privileged role. Replace the RSA public-key
+-- placeholder (never the private key) and grant only what policy allows.
 --
 -- Least privilege notes:
 --   * The demo role gets USAGE on the warehouse/database and can create schemas
@@ -44,11 +44,12 @@ CREATE ROLE IF NOT EXISTS GROUPE_DYNAMITE_DEMO_ROLE
     COMMENT = 'Least-privilege role for the Groupe Dynamite dbt demo.';
 
 CREATE USER IF NOT EXISTS GROUPE_DYNAMITE_DEMO_USER
-    PASSWORD = '<SET_A_STRONG_PASSWORD>'   -- rotate immediately; never commit real values
+    TYPE = SERVICE
+    RSA_PUBLIC_KEY = '<REPLACE_WITH_RSA_PUBLIC_KEY>'
     DEFAULT_ROLE = GROUPE_DYNAMITE_DEMO_ROLE
     DEFAULT_WAREHOUSE = GROUPE_DYNAMITE_DEMO_WH
-    MUST_CHANGE_PASSWORD = TRUE
-    COMMENT = 'Service user for the Groupe Dynamite dbt demo.';
+    DEFAULT_NAMESPACE = GROUPE_DYNAMITE_DEMO.GROUPE_DYNAMITE_DEMO_DEV
+    COMMENT = 'Key-pair service user for the Groupe Dynamite dbt demo.';
 
 -- --- Grants: warehouse + database usage (least privilege) --------------------
 GRANT USAGE ON WAREHOUSE GROUPE_DYNAMITE_DEMO_WH TO ROLE GROUPE_DYNAMITE_DEMO_ROLE;
