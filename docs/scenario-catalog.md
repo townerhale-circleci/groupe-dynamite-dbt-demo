@@ -6,12 +6,9 @@ live. Each scenario fails at a *different* stage of the pipeline, which is the
 teaching point: unsafe things fail early and cheap, real data/SQL problems fail
 with evidence.
 
-> **Accuracy note.** The exact changed file and line in each `fail` branch should
-> be confirmed during [preflight](preflight-checklist.md) (open the PR's *Files
-> changed* tab, or diff the branch on a machine where cross-branch git reads are
-> permitted). The descriptions below are by design of the pipeline; the
-> uppercase filename (`Customer_Lifetime_Value.sql`) is confirmed from rehearsal
-> MCP retrieval (see [rehearsal-status.md](rehearsal-status.md)).
+> **Rehearsal evidence.** Pipelines #24–#31 verified every fail/fix pair at its
+> intended boundary. Confirm the PR diff during preflight so the presenter starts
+> from the expected commit.
 
 ## At a glance
 
@@ -24,6 +21,9 @@ with evidence.
 
 Primary runbook uses **#3** (Moment 1) and **#4** (Moment 2). #5 and #2 are
 strong alternates / follow-ups.
+
+Live results: #24/#26/#28/#30 failed as designed; #25/#27/#29/#31 passed.
+All runtime schemas were cleaned.
 
 ---
 
@@ -58,8 +58,8 @@ strong alternates / follow-ups.
   passes lint + compile, but fails at execution in Snowflake (e.g. casting a
   non-numeric value to a number).
 - **Where it's caught:** `dbt-pr-build`, at run time in the disposable
-  `GROUPE_DYNAMITE_DEMO_PR_…` schema. `run_results.json` records the failing node with `status: "error"` and
-  the Snowflake message; `logs/` holds the compiled SQL.
+  `GROUPE_DYNAMITE_DEMO_PR_…` schema. `run_results.json` records the failing node
+  with `status: "error"` and the Snowflake message; `logs/` holds compiled SQL.
 - **Why it matters:** this is the *actionable failure* — evidence in artifacts, no
   guessing, human applies the fix.
 - **Fix:** `demo/fix-invalid-cast` corrects the cast/expression.
