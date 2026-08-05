@@ -121,8 +121,8 @@ models:
 
   - name: fct_business_rule_demo
     description: >
-      Demo-only row with negative net sales so the authored retail business
-      rule fails after the model builds successfully.
+      Demo-only row after correcting net sales to a valid non-negative retail
+      amount.
     columns:
       - name: net_sales
         description: Net sales amount that must not be negative.
