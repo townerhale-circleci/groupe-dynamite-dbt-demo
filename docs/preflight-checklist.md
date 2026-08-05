@@ -15,12 +15,12 @@ degraded form (see [demo-runbook.md](demo-runbook.md) stop conditions and
 |-------|-------|
 | CircleCI project | `gh/townerhale-circleci/groupe-dynamite-dbt-demo` |
 | CircleCI context | `snowflake-dbt-demo` |
-| Snowflake database | approved isolated database; current fallback is the operator's personal database (confirm outside the repo) |
-| Snowflake warehouse | approved existing X-Small warehouse |
-| Snowflake role/user | browser-SSO identity for local validation; dedicated CI auth still required |
+| Snowflake database | `GROUPE_DYNAMITE_DEMO` |
+| Snowflake warehouse | `GROUPE_DYNAMITE_DEMO_WH` (X-Small, auto-suspend) |
+| Snowflake role/user | `GROUPE_DYNAMITE_DEMO_ROLE` / `GROUPE_DYNAMITE_DEMO_USER` (key-pair service identity) |
 | Promotion schemas | `GROUPE_DYNAMITE_DEMO_DEV`, `GROUPE_DYNAMITE_DEMO_PROD` |
 | PR schemas | `GROUPE_DYNAMITE_DEMO_PR_<…>` (uppercase `A–Z0–9_`) |
-| Context variable names (values NOT shown) | `DBT_SNOWFLAKE_ACCOUNT`, `DBT_SNOWFLAKE_USER`, `DBT_SNOWFLAKE_PASSWORD`, `DBT_SNOWFLAKE_ROLE`, `DBT_SNOWFLAKE_WAREHOUSE`, `DBT_SNOWFLAKE_DATABASE` |
+| Context variable names (values NOT shown) | `DBT_SNOWFLAKE_ACCOUNT`, `DBT_SNOWFLAKE_USER`, `DBT_SNOWFLAKE_AUTHENTICATOR`, `DBT_SNOWFLAKE_PRIVATE_KEY`, `DBT_SNOWFLAKE_ROLE`, `DBT_SNOWFLAKE_WAREHOUSE`, `DBT_SNOWFLAKE_DATABASE` |
 
 `DBT_SCHEMA` is **not** a context variable — CI sets the fully prefixed PR, DEV,
 or PROD schema per job. `DBT_THREADS` is optional (defaults to 4).
@@ -58,7 +58,7 @@ circleci config validate .circleci/config.yml
 ```
 
 **Pass gate:** A1–A6 exit 0; the pytest run reports the expected suite green
-(rehearsal baseline: **101 passed** — see [rehearsal-status.md](rehearsal-status.md)).
+(rehearsal baseline: **102 passed** — see [rehearsal-status.md](rehearsal-status.md)).
 A7 prints "Config file is valid" if the CLI is present.
 **Fail gate:** any non-zero exit → the offline demo (Moment 1) is at risk; fix
 before proceeding. The `x` env values above are throwaway and must never be real.
@@ -106,9 +106,9 @@ In the CircleCI UI for `gh/townerhale-circleci/groupe-dynamite-dbt-demo`:
 - **C1.** Project is set up and **following** the GitHub repo (pushes produce
   pipelines). Pass gate: a recent pipeline is listed.
 - **C2.** Context `snowflake-dbt-demo` exists under the owning org/account.
-  Pass gate: it lists exactly the six variable **names** from the table above.
+  Pass gate: it lists exactly the seven variable **names** from the table above.
   **Do not open/read the values.** Fail gate: `DBT_SNOWFLAKE_ACCOUNT` (or any of
-  the six) missing → credentialed jobs will fail on connect; see
+  the seven) missing → credentialed jobs will fail on connect; see
   [recovery-fallback.md](recovery-fallback.md) → "Missing context vars".
 - **C3.** Expected status checks appear on a PR (Checks tab). The check contexts
   are, per job (confirm the exact strings in the Checks UI — CircleCI publishes

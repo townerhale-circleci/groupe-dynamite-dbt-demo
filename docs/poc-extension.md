@@ -25,8 +25,8 @@ project is confirmed.
 
 ## 2. Production authentication
 
-The demo uses username/password in a CircleCI context. For a customer POC, plan
-for their real auth posture:
+The demo uses a key-pair service identity in a CircleCI context. For a customer
+POC, align it with their real authentication posture:
 
 - Prefer **key-pair auth** or an **OAuth/externally-managed** Snowflake identity
   over static passwords; Snowflake is moving toward MFA/key-pair for service
@@ -112,7 +112,7 @@ verified end-to-end. They are **not** implemented or verified in this repo.
 | Area | In this demo? | POC work |
 |------|:---:|---------|
 | dbt Core pipeline shape | ✅ shown | confirm Core enablement for target project |
-| Snowflake auth | ⚠️ demo password | key-pair/OAuth, least-privilege service identity |
+| Snowflake auth | ✅ key-pair service user | customer-approved key-pair/OAuth identity |
 | Enforced merge blocks | ✅ (public demo) | reproduce on private customer org/plan |
 | Context restriction | ❌ | org/group-restricted contexts |
 | Orbs / config policies | ❌ (static config) | private orbs + OPA policies at scale |
