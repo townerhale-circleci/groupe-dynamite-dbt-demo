@@ -75,23 +75,20 @@ down; these are the same gates running on my machine."
 
 ## 4. GitHub branch protection unavailable
 
-**Reality (record it honestly):** this demo repo is a **private repo under a
-personal GitHub account**. Attempting to configure branch protection / required
-status checks returns **HTTP 403** — an **entitlement limitation**: enforced
-required checks on a private repo require **GitHub Pro** (or the repo must be
-public / owned by an org with the entitlement). See
+**Current demo state:** the repository is public and strict required checks are
+enabled on `main`; PR #1 was verified `BLOCKED` by a red CircleCI check. See
 [rehearsal-status.md](rehearsal-status.md).
 
-**Recover / how to present:**
-- Demonstrate the *block signal* — the offline gate posting a **red** required-
-  style check on the unsafe PR — and simply **do not merge** it.
-- Say: "In your org, that red check is a hard, enforced merge block. Here, on a
-  personal private repo, we can't enable enforced required checks (a GitHub
-  entitlement, not a pipeline gap), so I'm showing the failing check that the rule
-  keys off of."
+**If protection is unavailable on a fork/customer repo:**
+- Confirm the repo visibility and plan entitlement. Private personal-account
+  repositories require GitHub Pro; customer source should normally live in an
+  entitled private organization.
+- Demonstrate the red block signal but say clearly that enforcement is missing
+  in that environment. Do not merge until protection is restored.
+- Use the current public demo repo as the verified fallback if policy permits.
 
-**Don't say:** that required checks are configured/enforced on this repo, or that
-the merge was automatically blocked. They are **not** established here.
+**Don't say:** that a red status is enforced unless GitHub reports the PR
+`BLOCKED` under an active protection rule.
 
 ---
 
@@ -161,5 +158,5 @@ Never cut by faking speed — don't claim a run finished that didn't. A crisp
 - No secrets shown, typed, or read aloud — not even partially.
 - No `--force` pushes; force-with-lease only, by a human, off-demo.
 - CircleCI and the MCP **never edit code**. Every fix is a human commit + rerun.
-- Don't over-promise: deploy markers, enforced required checks, and live
-  PROD are **not** verified yet (see [rehearsal-status.md](rehearsal-status.md)).
+- Don't over-promise: deploy markers, team-restricted contexts, and live PROD
+  are **not** verified yet (see [rehearsal-status.md](rehearsal-status.md)).

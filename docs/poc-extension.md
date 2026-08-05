@@ -43,19 +43,19 @@ pipeline shape, not the customer's specific auth integration.
 
 ## 3. Org / team restrictions
 
-The demo repo is a **private repo under a personal GitHub account**, which limits
-what can be shown (see [rehearsal-status.md](rehearsal-status.md)):
+The demo repo is **public under a personal GitHub account** after an explicit
+operator decision (see [rehearsal-status.md](rehearsal-status.md)):
 
-- **Enforced required status checks / branch protection** need GitHub Pro or an
-  org-owned (public or entitled) repo. In the customer's **org**, the failing
-  offline check becomes a real, enforced merge block.
+- **Enforced required status checks / branch protection are demonstrated** on
+  `main`; PR #1 was verified `BLOCKED` while a required CircleCI check was red.
 - **Context restriction** (limiting `snowflake-dbt-demo` to specific projects or
   security groups) and **restricted contexts** are org-level CircleCI features —
   available to the customer, not demonstrated on the personal account.
 - Plan CODEOWNERS, protected `main`, and required reviewers in the customer org.
 
-**Don't claim** org/team enforcement is shown here; frame it as "this is the
-signal; your org turns it into enforcement."
+**Don't claim** org/team approval or context restriction is shown here. The
+customer POC should keep source private under an entitled organization while
+retaining the same required-check behavior.
 
 ## 4. Standardization: private orbs & config policies
 
@@ -113,7 +113,7 @@ verified end-to-end. They are **not** implemented or verified in this repo.
 |------|:---:|---------|
 | dbt Core pipeline shape | ✅ shown | confirm Core enablement for target project |
 | Snowflake auth | ⚠️ demo password | key-pair/OAuth, least-privilege service identity |
-| Enforced merge blocks | ❌ (personal repo) | org branch protection + required checks |
+| Enforced merge blocks | ✅ (public demo) | reproduce on private customer org/plan |
 | Context restriction | ❌ | org/group-restricted contexts |
 | Orbs / config policies | ❌ (static config) | private orbs + OPA policies at scale |
 | Step Functions / MWAA | ❌ | orchestrator ↔ CI integration design |

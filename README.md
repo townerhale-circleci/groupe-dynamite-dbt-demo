@@ -104,6 +104,8 @@ circleci config validate .circleci/config.yml
 
 - CircleCI project: `gh/townerhale-circleci/groupe-dynamite-dbt-demo`
   (followed, so GitHub pushes emit CircleCI builds and status updates)
+- GitHub visibility: public by explicit operator choice; strict CircleCI checks
+  are required on `main` and a red check was verified to block PR #1
 - Credential context: `snowflake-dbt-demo` (created empty; populate it only
   after the Snowflake service identity is provisioned)
 - GitHub namespace: personal account, so the demo uses a visible manual

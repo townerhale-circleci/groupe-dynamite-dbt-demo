@@ -57,12 +57,11 @@ gate fails on it — before the context is ever attached.
   the context isn't attached to offline jobs, so an unsafe change can't reach the
   warehouse. Two: this red check is the exact signal a required-status
   branch-protection rule would key off of in an entitled customer organization."
-- `▶` (honesty caveat, say it plainly) "On this demo repo — a private repo under a
-  personal GitHub account — we couldn't enable *enforced* required checks, so the
-  red status is the block signal and we simply don't merge. In your org, that same
-  red check becomes a hard merge block." (See
-  [recovery-fallback.md](recovery-fallback.md) → "GitHub branch protection
-  unavailable".)
+- `▶` "This public demo repo has strict required checks on `main`; we verified
+  GitHub reports a PR as `BLOCKED` while a required CircleCI check is red. Before
+  the live demo, retarget this scenario PR from `feature/build-demo` to `main`
+  so the same protection applies here." (See
+  [scenario-catalog.md](scenario-catalog.md) → "Base retargeting".)
 
 **Optional 30s repair preview:** `🖱` Show that `demo/fix-uppercase-model` renames
 the file to `customer_lifetime_value.sql`. Don't merge; the point is the block.

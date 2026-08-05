@@ -56,13 +56,11 @@ _Last updated: 2026-08-05._
 ## ❌ Not yet verified
 
 Do **not** claim these as working. They require a populated context + live
-Snowflake (and, for merge blocking, a GitHub entitlement this repo lacks).
+Snowflake.
 
 - **Snowflake live `dbt build`** into a `PR_` schema (the real Moment 2 build).
 - **Manual approval hold** (`hold-promote-prod`) exercised end-to-end.
 - **PROD promotion** (`dbt-main-prod` building into `PROD`).
-- **GitHub merge blocking** — enforced required checks blocking a merge (see the
-  entitlement note below).
 - **Artifact retrieval** of a *real* failed build's `run_results.json` / `logs/`
   (offline jobs' artifacts exist; a credentialed failure's artifacts haven't been
   produced because the credentialed jobs haven't run).
@@ -75,23 +73,25 @@ C–D, run it live, and update this page with the concrete result.
 
 ---
 
-## GitHub branch protection — entitlement limitation (record exactly)
+## GitHub branch protection — verified
 
-Configuring branch protection / required status checks on this repo returns
-**HTTP 403**. This is an **entitlement limitation, not a pipeline gap**: the repo
-is a **private repo under a personal GitHub account**, and enforced required
-status checks on a private repo require **GitHub Pro** (or the repo must be
-**public**, or owned by an org with the entitlement).
+The first protection attempt returned **HTTP 403** while this was a private
+personal-account repository. After explicit operator approval, the repository
+was made public and strict required checks were enabled on `main` for:
 
-Therefore:
-- **Do not claim** that required status checks are established or that merges are
-  automatically blocked on this repo.
-- The "blocked unsafe PR" moment is demonstrated by the **failing (red) check**
-  that such a rule would key off of, plus operator discipline (not merging).
-- In a customer **org** (or a Pro/public repo), that same red check becomes a
-  real, enforced merge block. Frame it that way — see
-  [poc-extension.md](poc-extension.md) §3 and
-  [recovery-fallback.md](recovery-fallback.md) §4.
+- `ci/circleci: validate-model-names`
+- `ci/circleci: python-tests`
+- `ci/circleci: sqlfluff`
+- `ci/circleci: dbt-compile`
+- `ci/circleci: dbt-pr-build`
+
+PR #1 then reported `mergeStateStatus: BLOCKED` while `dbt-compile` was red and
+`dbt-pr-build` had not run. This proves the failing CircleCI status blocks the
+merge on this demo repository.
+
+Customer POC caveat: this public visibility choice is for the demo only. A
+customer should keep source private under an organization/plan that supports
+required checks and team restrictions.
 
 ---
 
@@ -111,7 +111,7 @@ Therefore:
 | Live Snowflake PR build | ❌ | needs populated context |
 | Approval hold end-to-end | ❌ | needs live `main` run |
 | PROD promotion | ❌ | needs live `main` run |
-| GitHub enforced merge block | ❌ | 403 entitlement (personal private repo) |
+| GitHub enforced merge block | ✅ | strict required checks; PR #1 reported BLOCKED |
 | Failed-build artifact retrieval | ❌ | credentialed jobs haven't run live |
 | Rerun-from-failed (live) | ❌ | needs live build |
 | PR schema cleanup (live) | ❌ | needs live build |
