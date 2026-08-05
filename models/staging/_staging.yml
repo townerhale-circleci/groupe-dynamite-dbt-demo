@@ -197,3 +197,8 @@ models:
         data_tests:
           - not_null
           - non_negative
+
+  - name: stg_broken_reference_demo
+    description: >
+      Demo-only model with an intentionally misspelled ref target. The matching
+      fix branch points it at stg_orders.
