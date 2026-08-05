@@ -118,3 +118,14 @@ models:
         description: Units returned divided by units sold.
         data_tests:
           - non_negative
+
+  - name: fct_business_rule_demo
+    description: >
+      Demo-only row with negative net sales so the authored retail business
+      rule fails after the model builds successfully.
+    columns:
+      - name: net_sales
+        description: Net sales amount that must not be negative.
+        data_tests:
+          - not_null
+          - non_negative
