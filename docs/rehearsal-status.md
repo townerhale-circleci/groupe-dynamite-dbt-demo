@@ -33,14 +33,23 @@ _Last updated: 2026-08-05._
   lacks `DBT_SNOWFLAKE_ACCOUNT`. `dbt-pr-build` was `not_run`;
   `dbt-pr-cleanup` ran under the former `terminal` dependency and failed on the
   same missing variable. Main promotion jobs were not part of this branch run.
-- The current config fixes that ordering, but a fresh pipeline must verify it
-  live before claiming the credential boundary is proven in CircleCI.
+- The current config fixes that ordering; pipeline #11 below verifies it live.
 
 ### CircleCI — pipeline #3 + Cursor MCP retrieval
 - **Pipeline #3** and a **Cursor CircleCI MCP** read-only retrieval both
   **identified `Customer_Lifetime_Value.sql`** as the offending uppercase model in
   the `demo/fail-uppercase-model` scenario — confirming the MCP backup can surface
   the failing detail from CI without editing anything.
+
+### CircleCI — pipeline #11 (current credential-boundary config)
+- `validate-model-names`, `python-tests`, and `sqlfluff` all passed before the
+  credentialed stage.
+- Only then did `dbt-compile` start and fail on the expected missing
+  `DBT_SNOWFLAKE_ACCOUNT`.
+- `dbt-pr-build` and `dbt-pr-cleanup` were both `not_run`, so no PR schema was
+  created and no unnecessary cleanup job attached the Snowflake context.
+- GitHub showed only the three green offline checks plus the expected red
+  `dbt-compile` check, matching the workflow dependency design.
 
 ---
 
@@ -50,8 +59,6 @@ Do **not** claim these as working. They require a populated context + live
 Snowflake (and, for merge blocking, a GitHub entitlement this repo lacks).
 
 - **Snowflake live `dbt build`** into a `PR_` schema (the real Moment 2 build).
-- **Live credential-boundary ordering** with the current config (offline gates
-  must finish before `dbt-compile`; cleanup must skip a `not_run` build).
 - **Manual approval hold** (`hold-promote-prod`) exercised end-to-end.
 - **PROD promotion** (`dbt-main-prod` building into `PROD`).
 - **GitHub merge blocking** — enforced required checks blocking a merge (see the
@@ -98,7 +105,7 @@ Therefore:
 | `dbt parse` | ✅ | graph valid, no warehouse |
 | CircleCI config validate | ✅ | offline contract tests pass |
 | Offline CI jobs (pipeline #2) | ✅ | green, no context |
-| Live offline-before-compile ordering | ❌ | current config validated; fresh pipeline pending |
+| Live offline-before-compile ordering | ✅ | pipeline #11; cleanup skipped `not_run` build |
 | Credentialed CI path | ⚠️ | compile blocked on missing `DBT_SNOWFLAKE_ACCOUNT`; build not run |
 | MCP identifies failing model | ✅ | pipeline #3 + Cursor MCP → `Customer_Lifetime_Value.sql` |
 | Live Snowflake PR build | ❌ | needs populated context |
