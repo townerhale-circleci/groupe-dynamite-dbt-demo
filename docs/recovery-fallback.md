@@ -16,11 +16,11 @@ Keep this open in a second tab during the demo.
 `dbt debug` reports the connection check failing.
 
 **Recover:**
-- Confirm the `snowflake-dbt-demo` context has all six variable **names** set
+- Confirm the `snowflake-dbt-demo` context has all seven variable **names** set
   (see [preflight](preflight-checklist.md) C2). Don't read values.
-- Confirm the Snowflake user/role aren't locked or password-expired (the
-  bootstrap sets `MUST_CHANGE_PASSWORD = TRUE` — a never-rotated demo user will
-  fail here). The Snowflake owner can confirm in a worksheet.
+- Confirm the service user is enabled and its RSA public key matches the private
+  key stored in the CircleCI context. The Snowflake owner can verify this
+  without revealing either key.
 - If it can't be fixed in the moment: pivot. Moment 1 (offline) still runs live.
   For Moments 2 & 3, **narrate** from `.circleci/config.yml` and the
   [architecture diagram](architecture.md).
