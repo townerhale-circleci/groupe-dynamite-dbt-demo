@@ -197,3 +197,14 @@ models:
         data_tests:
           - not_null
           - non_negative
+
+  - name: Customer_Lifetime_Value
+    description: >
+      Demo-only customer lifetime order count with an intentionally invalid
+      uppercase filename. The matching fix branch normalizes the model name.
+    columns:
+      - name: customer_id
+        description: Customer identifier.
+        data_tests:
+          - not_null
+          - unique
