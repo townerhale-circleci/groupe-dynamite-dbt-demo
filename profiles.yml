@@ -10,7 +10,8 @@ groupe_dynamite:
       type: snowflake
       account: "{{ env_var('DBT_SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('DBT_SNOWFLAKE_USER') }}"
-      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD', '') }}"
+      authenticator: "{{ env_var('DBT_SNOWFLAKE_AUTHENTICATOR', 'snowflake') }}"
       role: "{{ env_var('DBT_SNOWFLAKE_ROLE') }}"
       warehouse: "{{ env_var('DBT_SNOWFLAKE_WAREHOUSE') }}"
       database: "{{ env_var('DBT_SNOWFLAKE_DATABASE') }}"
