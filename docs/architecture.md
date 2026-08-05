@@ -18,8 +18,8 @@ flowchart TB
       sf["sqlfluff<br/>(Snowflake dialect lint)"]
     end
     dc["dbt-compile<br/>(credentialed)"]
-    prb["dbt-pr-build<br/>&rarr; disposable PR_&lt;n&gt; schema"]
-    prc["dbt-pr-cleanup<br/>drops PR_ schema (guarded)"]
+    prb["dbt-pr-build<br/>&rarr; GROUPE_DYNAMITE_DEMO_PR_&lt;n&gt;"]
+    prc["dbt-pr-cleanup<br/>drops prefixed PR schema (guarded)"]
   end
 
   gh["GitHub commit status<br/>one check per job"]
@@ -65,15 +65,14 @@ flowchart TB
   caught here **before** any credential is loaded — this is the "blocked unsafe
   PR" moment.
 - **PR schema.** `dbt-pr-build` materialises into a disposable, deterministic
-  `PR_<…>` schema resolved by `scripts/resolve_pr_schema.py`. Concurrent PRs
-  never collide.
+  `GROUPE_DYNAMITE_DEMO_PR_<…>` schema. Concurrent PRs never collide.
 - **GitHub status.** CircleCI posts one commit status per job back to the PR.
   These red/green checks are the merge signal. See
   [rehearsal-status.md](rehearsal-status.md) for the branch-protection
   entitlement caveat on this personal-account repo.
-- **main DEV → approval → PROD.** Merging to `main` runs `dbt-main-dev` into the
-  `DEV` schema, pauses at the `hold-promote-prod` manual approval, then
-  `dbt-main-prod` builds into `PROD`. One branch, one promotion path.
+- **main DEV → approval → PROD.** Merging to `main` builds into
+  `GROUPE_DYNAMITE_DEMO_DEV`, pauses at `hold-promote-prod`, then builds into
+  `GROUPE_DYNAMITE_DEMO_PROD`. One branch, one promotion path.
 - **Artifacts.** `run_results.json`, `manifest.json`, `compiled/`, and `logs/`
   are stored after the build step (`when: always`), so they persist even when
   `dbt build` fails — that is what makes a failure *actionable*.
@@ -90,5 +89,4 @@ flowchart TB
 | `dbt-compile`, `dbt-pr-build`, `dbt-pr-cleanup` | ✅ yes | ✅ yes |
 | `dbt-main-dev`, `dbt-main-prod` | ✅ yes | ✅ yes |
 
-`DBT_SCHEMA` is set by CI, never by a person: `PR_<…>` for PR builds, `DEV` for
-`dbt-main-dev`, `PROD` for `dbt-main-prod`.
+`DBT_SCHEMA` is set by CI to a fully prefixed PR, DEV, or PROD schema.

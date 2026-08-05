@@ -46,6 +46,7 @@ def test_dbt_project_core_settings() -> None:
     assert project["config-version"] == 2
     assert "models" in project["model-paths"]
     assert "seeds" in project["seed-paths"]
+    assert project["quoting"]["database"] is True
 
 
 def test_profiles_use_only_env_vars() -> None:
@@ -62,6 +63,14 @@ def test_target_schema_comes_from_dbt_schema_env_var() -> None:
     profiles = _load_yaml(PROJECT_ROOT / "profiles.yml")
     schema_value = profiles["groupe_dynamite"]["outputs"]["dev"]["schema"]
     assert "DBT_SCHEMA" in schema_value
+
+
+def test_profile_supports_browser_sso_without_committed_credentials() -> None:
+    profiles = _load_yaml(PROJECT_ROOT / "profiles.yml")
+    output = profiles["groupe_dynamite"]["outputs"]["dev"]
+
+    assert "DBT_SNOWFLAKE_AUTHENTICATOR" in output["authenticator"]
+    assert "env_var(" in output["password"]
 
 
 def test_all_model_filenames_are_snake_case() -> None:
@@ -131,7 +140,11 @@ def test_bootstrap_and_teardown_templates_are_prefixed_and_idempotent() -> None:
 def test_bootstrap_can_create_all_ci_target_schemas() -> None:
     bootstrap = (PROJECT_ROOT / "SQL" / "bootstrap.sql").read_text(encoding="utf-8")
 
-    for schema in ("RAW", "DEV", "PROD"):
+    for schema in (
+        "GROUPE_DYNAMITE_DEMO_RAW",
+        "GROUPE_DYNAMITE_DEMO_DEV",
+        "GROUPE_DYNAMITE_DEMO_PROD",
+    ):
         assert (
             f"CREATE SCHEMA IF NOT EXISTS GROUPE_DYNAMITE_DEMO.{schema}"
             in bootstrap

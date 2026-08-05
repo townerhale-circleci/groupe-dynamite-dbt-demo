@@ -5,9 +5,9 @@ Run this the morning of the demo, in order. Every item has an explicit
 degraded form (see [demo-runbook.md](demo-runbook.md) stop conditions and
 [recovery-fallback.md](recovery-fallback.md)) — do not improvise live.
 
-> **No secrets anywhere.** Nothing in this checklist prints or stores a secret.
-> Snowflake credentials live only in the CircleCI `snowflake-dbt-demo` context;
-> you confirm they are *set*, never read their values.
+> **No secrets anywhere.** CI credentials live only in the CircleCI
+> `snowflake-dbt-demo` context; local validation uses browser SSO in Snowflake's
+> credential store. Confirm names and connectivity, never reveal values.
 
 ## Names you will need (verify, don't guess)
 
@@ -15,16 +15,15 @@ degraded form (see [demo-runbook.md](demo-runbook.md) stop conditions and
 |-------|-------|
 | CircleCI project | `gh/townerhale-circleci/groupe-dynamite-dbt-demo` |
 | CircleCI context | `snowflake-dbt-demo` |
-| Snowflake database | `GROUPE_DYNAMITE_DEMO` |
-| Snowflake warehouse | `GROUPE_DYNAMITE_DEMO_WH` |
-| Snowflake role | `GROUPE_DYNAMITE_DEMO_ROLE` |
-| Snowflake user | `GROUPE_DYNAMITE_DEMO_USER` |
-| Promotion schemas | `DEV`, `PROD` |
-| PR schemas | `PR_<…>` (from `scripts/resolve_pr_schema.py`; uppercase `A–Z0–9_`) |
+| Snowflake database | approved isolated database; current fallback is the operator's personal database (confirm outside the repo) |
+| Snowflake warehouse | approved existing X-Small warehouse |
+| Snowflake role/user | browser-SSO identity for local validation; dedicated CI auth still required |
+| Promotion schemas | `GROUPE_DYNAMITE_DEMO_DEV`, `GROUPE_DYNAMITE_DEMO_PROD` |
+| PR schemas | `GROUPE_DYNAMITE_DEMO_PR_<…>` (uppercase `A–Z0–9_`) |
 | Context variable names (values NOT shown) | `DBT_SNOWFLAKE_ACCOUNT`, `DBT_SNOWFLAKE_USER`, `DBT_SNOWFLAKE_PASSWORD`, `DBT_SNOWFLAKE_ROLE`, `DBT_SNOWFLAKE_WAREHOUSE`, `DBT_SNOWFLAKE_DATABASE` |
 
-`DBT_SCHEMA` is **not** a context variable — CI sets it per job (`PR_<…>` / `DEV`
-/ `PROD`). `DBT_THREADS` is optional (defaults to 4).
+`DBT_SCHEMA` is **not** a context variable — CI sets the fully prefixed PR, DEV,
+or PROD schema per job. `DBT_THREADS` is optional (defaults to 4).
 
 ---
 
@@ -59,7 +58,7 @@ circleci config validate .circleci/config.yml
 ```
 
 **Pass gate:** A1–A6 exit 0; the pytest run reports the expected suite green
-(rehearsal baseline: **100 passed** — see [rehearsal-status.md](rehearsal-status.md)).
+(rehearsal baseline: **101 passed** — see [rehearsal-status.md](rehearsal-status.md)).
 A7 prints "Config file is valid" if the CLI is present.
 **Fail gate:** any non-zero exit → the offline demo (Moment 1) is at risk; fix
 before proceeding. The `x` env values above are throwaway and must never be real.
@@ -150,7 +149,8 @@ worksheet.
   uv run dbt debug --profiles-dir . --project-dir .
   ```
 
-- **D3.** `DEV` and `PROD` schemas exist (or dbt will create them on first build)
+- **D3.** `GROUPE_DYNAMITE_DEMO_DEV` and
+  `GROUPE_DYNAMITE_DEMO_PROD` exist (or dbt can create them)
   and are safe to overwrite for the demo.
 
 **Pass gate:** D2 `dbt debug` reports "All checks passed!" and connection OK.

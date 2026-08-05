@@ -94,20 +94,21 @@ enabled on `main`; PR #1 was verified `BLOCKED` by a red CircleCI check. See
 
 ## 5. Cleanup failure (PR schema not dropped)
 
-**Looks like:** `dbt-pr-cleanup` fails, or you're unsure a `PR_` schema was
-dropped.
+**Looks like:** `dbt-pr-cleanup` fails, or a
+`GROUPE_DYNAMITE_DEMO_PR_…` schema may remain.
 
 **Recover:**
 - `dbt-pr-cleanup` runs after a started `dbt-pr-build` succeeds, fails, is
   canceled, or becomes unauthorized, so a failed build still triggers cleanup.
   It intentionally skips `not_run`, because no schema was created. If cleanup
   itself failed, rerun that job from the CircleCI UI.
-- Manually drop the leftover schema with the guarded macro (it refuses anything
-  not prefixed `PR_`, and refuses `DEV`/`PROD`):
+- Manually drop the leftover schema with the guarded macro. It accepts only the
+  `GROUPE_DYNAMITE_DEMO_PR_` namespace and protects RAW/DEV/PROD:
   ```bash
-  # DBT_SCHEMA must be the PR_ schema to drop; credentials from your local .env.
+  # Credentials come from your local .env; never commit them.
   uv run dbt run-operation drop_pr_schema \
-      --args '{schema_name: PR_<the_schema>}' --profiles-dir . --project-dir .
+      --args '{schema_name: GROUPE_DYNAMITE_DEMO_PR_<id>}' \
+      --profiles-dir . --project-dir .
   ```
 - Full manual options are in [cleanup.md](cleanup.md).
 

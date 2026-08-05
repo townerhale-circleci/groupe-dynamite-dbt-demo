@@ -85,7 +85,8 @@ self-explanatory, a human fixes it, and we rerun to green.
 
 - `🖱` Open PR #4 → its CircleCI `pr` pipeline.
 - `▶` "Offline gates are green — the SQL is well-formed and snake_case. Now the
-  credentialed `dbt-pr-build` runs a **real** build into its own `PR_` schema."
+  credentialed `dbt-pr-build` runs a **real** build into its own
+  `GROUPE_DYNAMITE_DEMO_PR_…` schema."
 - `🖱` Click the failed `dbt-pr-build` job. Scroll to the failing model in the
   step log — a Snowflake cast/numeric-conversion error on the offending model.
 - `▶` "This is a real Snowflake error, not a lint. And it's actionable, because we
@@ -106,7 +107,7 @@ self-explanatory, a human fixes it, and we rerun to green.
 - `🖱` Back on the PR/pipeline, the new push starts a fresh run. `▶` "Reruns are at
   the job boundary and human-triggered — `dbt build` always starts fresh, there's
   no silent auto-retry." Watch `dbt-pr-build` go **green**.
-- `🖱` Show `dbt-pr-cleanup` ran and dropped the `PR_` schema: `▶` "The disposable
+- `🖱` Show `dbt-pr-cleanup` dropped the prefixed PR schema: `▶` "The disposable
   schema is torn down automatically after a started build finishes, so no PR
   leaves residue in Snowflake."
 

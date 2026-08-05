@@ -11,7 +11,7 @@ _Last updated: 2026-08-05._
 ## ✅ Verified
 
 ### Local offline validation
-- **`uv run pytest` → 100 passed.** Full offline suite green (project contract,
+- **`uv run pytest` → 101 passed.** Full offline suite green (project contract,
   PR-schema resolver, CircleCI config contract, seed integrity, model-name
   validator).
 - **Model-name gate** (`scripts/validate_model_names.py models`) passes on the
@@ -51,22 +51,37 @@ _Last updated: 2026-08-05._
 - GitHub showed only the three green offline checks plus the expected red
   `dbt-compile` check, matching the workflow dependency design.
 
+### Snowflake browser-SSO privilege preflight
+- Snowflake CLI browser SSO and `dbt debug` both connected successfully.
+- The available role cannot create account-level databases, warehouses, roles,
+  or service users. The user-level fallback could create the three isolated
+  `GROUPE_DYNAMITE_DEMO_*` schemas in a personal database.
+- A real DEV `dbt build` reached all eight seed executions, then Snowflake
+  rejected each with `060119 (0A000): Tables cannot currently be created in a
+  personal database.` No model or data test ran.
+- This is a definitive privilege/platform blocker, not a dbt parsing failure.
+  Live completion requires either the reviewed `SQL/bootstrap.sql` resources
+  from an admin or a writable non-personal sandbox database with CREATE
+  SCHEMA/TABLE/VIEW, plus non-interactive CI authentication.
+
 ---
 
 ## ❌ Not yet verified
 
-Do **not** claim these as working. They require a populated context + live
-Snowflake.
+Do **not** claim these as working. They require a writable non-personal
+Snowflake sandbox and approved non-interactive CI authentication.
 
-- **Snowflake live `dbt build`** into a `PR_` schema (the real Moment 2 build).
+- **Snowflake live `dbt build`** into a
+  `GROUPE_DYNAMITE_DEMO_PR_…` schema (the real Moment 2 build).
 - **Manual approval hold** (`hold-promote-prod`) exercised end-to-end.
-- **PROD promotion** (`dbt-main-prod` building into `PROD`).
+- **PROD promotion** (`dbt-main-prod` building into
+  `GROUPE_DYNAMITE_DEMO_PROD`).
 - **Artifact retrieval** of a *real* failed build's `run_results.json` / `logs/`
   (offline jobs' artifacts exist; a credentialed failure's artifacts haven't been
   produced because the credentialed jobs haven't run).
 - **Rerun-from-failed** at the job boundary against a live build.
-- **PR schema cleanup** (`dbt-pr-cleanup` dropping a real `PR_` schema after a
-  live build).
+- **PR schema cleanup** (`dbt-pr-cleanup` dropping a real prefixed PR schema
+  after a live build).
 
 To move any of these to ✅, complete [preflight](preflight-checklist.md) sections
 C–D, run it live, and update this page with the concrete result.
@@ -99,7 +114,7 @@ required checks and team restrictions.
 
 | Capability | Status | Evidence / blocker |
 |------------|:------:|--------------------|
-| Local pytest (100) | ✅ | offline suite green |
+| Local pytest (101) | ✅ | offline suite green |
 | Model-name gate | ✅ | passes clean; fails on uppercase |
 | SQLFluff lint | ✅ | Snowflake dialect, offline |
 | `dbt parse` | ✅ | graph valid, no warehouse |
@@ -108,7 +123,9 @@ required checks and team restrictions.
 | Live offline-before-compile ordering | ✅ | pipeline #11; cleanup skipped `not_run` build |
 | Credentialed CI path | ⚠️ | compile blocked on missing `DBT_SNOWFLAKE_ACCOUNT`; build not run |
 | MCP identifies failing model | ✅ | pipeline #3 + Cursor MCP → `Customer_Lifetime_Value.sql` |
-| Live Snowflake PR build | ❌ | needs populated context |
+| Snowflake browser SSO / `dbt debug` | ✅ | connection succeeded |
+| Isolated fallback schemas | ⚠️ | created, but personal DB forbids tables |
+| Live Snowflake PR build | ❌ | needs writable non-personal DB + CI auth |
 | Approval hold end-to-end | ❌ | needs live `main` run |
 | PROD promotion | ❌ | needs live `main` run |
 | GitHub enforced merge block | ✅ | strict required checks; PR #1 reported BLOCKED |

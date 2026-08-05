@@ -199,8 +199,14 @@ def test_manual_approval_hold_between_dev_and_prod(config: dict) -> None:
 
 
 def test_main_dev_and_prod_use_reserved_schemas(config: dict) -> None:
-    assert config["jobs"]["dbt-main-dev"]["environment"]["DBT_SCHEMA"] == "DEV"
-    assert config["jobs"]["dbt-main-prod"]["environment"]["DBT_SCHEMA"] == "PROD"
+    assert (
+        config["jobs"]["dbt-main-dev"]["environment"]["DBT_SCHEMA"]
+        == "GROUPE_DYNAMITE_DEMO_DEV"
+    )
+    assert (
+        config["jobs"]["dbt-main-prod"]["environment"]["DBT_SCHEMA"]
+        == "GROUPE_DYNAMITE_DEMO_PROD"
+    )
 
 
 # --- artifact preservation --------------------------------------------------
@@ -274,9 +280,9 @@ def test_pr_build_resolves_schema_and_builds(config: dict) -> None:
 
 def test_drop_macro_is_guarded_to_pr_schemas() -> None:
     macro = (PROJECT_ROOT / "macros" / "drop_pr_schema.sql").read_text(encoding="utf-8")
-    assert "startswith('PR_')" in macro
+    assert "startswith('GROUPE_DYNAMITE_DEMO_PR_')" in macro
     assert "raise_compiler_error" in macro
-    assert "'DEV', 'PROD'" in macro or "'PROD'" in macro
+    assert "'GROUPE_DYNAMITE_DEMO_PROD'" in macro
     assert "drop schema if exists" in macro
 
 

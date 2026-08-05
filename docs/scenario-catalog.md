@@ -57,8 +57,8 @@ strong alternates / follow-ups.
 - **What's wrong:** a `CAST`/type conversion that is syntactically valid and
   passes lint + compile, but fails at execution in Snowflake (e.g. casting a
   non-numeric value to a number).
-- **Where it's caught:** `dbt-pr-build`, at run time in the disposable `PR_`
-  schema. `run_results.json` records the failing node with `status: "error"` and
+- **Where it's caught:** `dbt-pr-build`, at run time in the disposable
+  `GROUPE_DYNAMITE_DEMO_PR_…` schema. `run_results.json` records the failing node with `status: "error"` and
   the Snowflake message; `logs/` holds the compiled SQL.
 - **Why it matters:** this is the *actionable failure* — evidence in artifacts, no
   guessing, human applies the fix.

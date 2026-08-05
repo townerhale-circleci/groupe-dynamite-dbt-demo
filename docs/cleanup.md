@@ -11,45 +11,46 @@ Snowflake teardown.
 
 ---
 
-## 1. PR schemas (`PR_<…>`) — usually automatic, verify anyway
+## 1. Prefixed PR schemas — usually automatic, verify anyway
 
 `dbt-pr-cleanup` drops each PR's disposable schema after a started build
 succeeds, fails, is canceled, or becomes unauthorized. It does not run when the
 build is `not_run`, because offline-gate failures create no schema. To confirm
-none leaked, list schemas in Snowflake and drop any
-stray `PR_` schema with the **guarded** macro (it refuses non-`PR_` names and
-refuses `DEV`/`PROD`):
+none leaked, list schemas in the approved demo database and drop any stray
+`GROUPE_DYNAMITE_DEMO_PR_…` schema with the guarded macro:
 
 ```sql
--- In a Snowflake worksheet, review before running:
-SHOW SCHEMAS IN DATABASE GROUPE_DYNAMITE_DEMO;   -- look for PR_ leftovers
+-- Replace this placeholder outside the repo; review before running:
+SHOW SCHEMAS IN DATABASE <APPROVED_DEMO_DATABASE>;
 ```
 
 ```bash
-# For each stray PR_ schema (credentials from your local .env; never committed):
+# For each stray prefixed PR schema (credentials from local .env; never committed):
 uv run dbt run-operation drop_pr_schema \
-    --args '{schema_name: PR_<the_schema>}' --profiles-dir . --project-dir .
+    --args '{schema_name: GROUPE_DYNAMITE_DEMO_PR_<id>}' \
+    --profiles-dir . --project-dir .
 ```
 
-The macro will `raise_compiler_error` and drop nothing if the name isn't `PR_…`
-or is `DEV`/`PROD`. Safe by construction.
+The macro drops nothing unless the name begins
+`GROUPE_DYNAMITE_DEMO_PR_`; it also protects the prefixed RAW/DEV/PROD schemas.
 
 ---
 
-## 2. DEV / PROD demo schemas — manual, deliberate
+## 2. Prefixed DEV / PROD schemas — manual, deliberate
 
 These are the promotion schemas. Drop them **only** if you're tearing the demo
 down (not between rehearsals — you'll just rebuild them). The guarded macro
-**refuses** `DEV`/`PROD` on purpose, so this is a plain, explicit SQL action:
+**refuses** promotion schemas on purpose, so this is an explicit SQL action:
 
 ```sql
--- Manual. Review, confirm the database, then run:
-DROP SCHEMA IF EXISTS GROUPE_DYNAMITE_DEMO.DEV;
-DROP SCHEMA IF EXISTS GROUPE_DYNAMITE_DEMO.PROD;
+-- Manual. Replace the database placeholder outside the repo, then review:
+DROP SCHEMA IF EXISTS <APPROVED_DEMO_DATABASE>.GROUPE_DYNAMITE_DEMO_DEV;
+DROP SCHEMA IF EXISTS <APPROVED_DEMO_DATABASE>.GROUPE_DYNAMITE_DEMO_PROD;
+DROP SCHEMA IF EXISTS <APPROVED_DEMO_DATABASE>.GROUPE_DYNAMITE_DEMO_RAW;
 ```
 
 If you're keeping the demo warm for future runs, **skip this** — a rebuild
-overwrites DEV/PROD anyway.
+overwrites the DEV/PROD targets anyway.
 
 ---
 
@@ -67,8 +68,8 @@ values.
   - `DBT_SNOWFLAKE_ROLE`
   - `DBT_SNOWFLAKE_WAREHOUSE`
   - `DBT_SNOWFLAKE_DATABASE`
-- If the demo Snowflake user persists, **rotate its password** in Snowflake even
-  after deleting the context value, so no stale secret remains anywhere.
+- Rotate or revoke whichever approved CI credential was used, so no stale
+  password, key, or token remains.
 
 Never paste the values into chat, a doc, or a commit while doing this.
 
@@ -101,9 +102,10 @@ in [scenario-catalog.md](scenario-catalog.md); it is **not** part of cleanup.
 
 ## 5. Full Snowflake teardown — manual, last
 
-When the demo is permanently finished, remove everything `SQL/bootstrap.sql`
-created. Review each statement, then run in a worksheet with the appropriate
-admin role. `SQL/teardown.sql` is the reviewed template:
+This applies only if an administrator used the full standalone
+`SQL/bootstrap.sql` path. The current least-privilege fallback created schemas
+inside an existing database, so use steps 1–2 and **never drop that database**.
+For a standalone deployment, review `SQL/teardown.sql` with an admin:
 
 ```sql
 -- SQL/teardown.sql (review before running; DROP DATABASE is irreversible):
@@ -113,9 +115,8 @@ DROP DATABASE IF EXISTS GROUPE_DYNAMITE_DEMO;          -- SYSADMIN (cascades sch
 DROP WAREHOUSE IF EXISTS GROUPE_DYNAMITE_DEMO_WH;      -- SYSADMIN
 ```
 
-`DROP DATABASE` cascades every schema (including `DEV`/`PROD` and any `PR_`
-leftovers), so steps 1–2 are unnecessary if you run the full teardown. Confirm
-the database name one more time before executing — this is irreversible.
+`DROP DATABASE` cascades every prefixed demo schema in the standalone path.
+Never run it against a shared or personal database.
 
 ---
 
@@ -123,8 +124,8 @@ the database name one more time before executing — this is irreversible.
 
 | Step | Action | Destructive? | Who / where |
 |------|--------|:---:|-------------|
-| 1 | Drop stray `PR_` schemas | yes (guarded) | operator, dbt macro |
-| 2 | Drop `DEV`/`PROD` schemas | yes | operator, Snowflake worksheet |
+| 1 | Drop stray prefixed PR schemas | yes (guarded) | operator, dbt macro |
+| 2 | Drop prefixed RAW/DEV/PROD schemas | yes | operator, Snowflake worksheet |
 | 3 | Remove/rotate context secrets | n/a (names) | operator, CircleCI UI + Snowflake |
 | 4 | Delete scenario branches, close PRs | branch delete (non-force) | operator, git + GitHub |
 | 5 | Full Snowflake teardown | **yes, irreversible** | admin, `SQL/teardown.sql` |

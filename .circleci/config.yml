@@ -101,7 +101,7 @@ jobs:
     steps:
       - setup
       - run:
-          name: Resolve deterministic per-PR schema (PR_...)
+          name: Resolve deterministic prefixed per-PR schema
           command: |
             SCHEMA="$(uv run python scripts/resolve_pr_schema.py)"
             echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
@@ -128,7 +128,7 @@ jobs:
     steps:
       - setup
       - run:
-          name: Resolve deterministic per-PR schema (PR_...)
+          name: Resolve deterministic prefixed per-PR schema
           command: |
             SCHEMA="$(uv run python scripts/resolve_pr_schema.py)"
             echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
@@ -150,14 +150,14 @@ jobs:
             echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
             echo "Cleaning up PR schema: $SCHEMA"
       - run:
-          name: Drop PR_ schema (guarded macro; never DEV/PROD)
+          name: Drop prefixed PR schema (guarded macro; never RAW/DEV/PROD)
           command: uv run dbt run-operation drop_pr_schema --profiles-dir . --project-dir .
 
   # --- main promotion: DEV -> manual approval -> PROD ------------------------
   dbt-main-dev:
     executor: python
     environment:
-      DBT_SCHEMA: DEV
+      DBT_SCHEMA: GROUPE_DYNAMITE_DEMO_DEV
     steps:
       - setup
       - run:
@@ -168,7 +168,7 @@ jobs:
   dbt-main-prod:
     executor: python
     environment:
-      DBT_SCHEMA: PROD
+      DBT_SCHEMA: GROUPE_DYNAMITE_DEMO_PROD
     steps:
       - setup
       - run:

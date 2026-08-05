@@ -62,8 +62,9 @@ on `<< pipeline.git.branch >>`, not deprecated branch filter maps):
   (pytest, JUnit stored), and `sqlfluff`. The credentialed `dbt-compile` job
   performs a real Snowflake compile, then `dbt-pr-build` runs a **real**
   `dbt build` into a disposable per-PR schema, and `dbt-pr-cleanup` drops it.
-- **`main`** — `main` only. `dbt-main-dev` builds into `DBT_SCHEMA=DEV`, then a
-  **manual approval hold**, then `dbt-main-prod` builds into `DBT_SCHEMA=PROD`.
+- **`main`** — `main` only. `dbt-main-dev` builds into
+  `DBT_SCHEMA=GROUPE_DYNAMITE_DEMO_DEV`, then a **manual approval hold**, then
+  `dbt-main-prod` builds into `DBT_SCHEMA=GROUPE_DYNAMITE_DEMO_PROD`.
 
 Key behaviours:
 
@@ -71,13 +72,13 @@ Key behaviours:
   attached only to the five jobs that touch Snowflake.
 - **Per-PR schema** is resolved at run time by
   `scripts/resolve_pr_schema.py` (numeric PR → sanitized branch → build number),
-  always `PR_…`, uppercase `A-Z0-9_`, length-capped, never `DEV`/`PROD`.
+  always `GROUPE_DYNAMITE_DEMO_PR_…`, uppercase `A-Z0-9_`, and length-capped.
 - **Cleanup** uses modern flexible `requires` so it runs after any state in
   which `dbt-pr-build` could have created a schema (success, failed, canceled,
   or unauthorized). It excludes `not_run`, because an offline-gate failure
   creates no PR schema and must not attach Snowflake credentials. The
-  `drop_pr_schema` macro refuses anything not prefixed `PR_` and refuses
-  `DEV`/`PROD`.
+  `drop_pr_schema` macro refuses anything outside the prefixed demo PR namespace
+  and protects the RAW/DEV/PROD demo schemas.
 - **Artifacts** (`target/manifest.json`, `target/run_results.json`,
   `target/compiled`, `logs`) are stored after the build step, so they persist
   even when `dbt build` fails (`store_artifacts` runs after a failed step; it
