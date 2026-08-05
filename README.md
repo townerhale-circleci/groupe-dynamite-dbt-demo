@@ -29,7 +29,7 @@ conventions for a migration from dbt Cloud to dbt Core.
 ## Setup
 
 ```bash
-uv sync
+uv sync --frozen
 ```
 
 ## Local validation (offline — no Snowflake required)
