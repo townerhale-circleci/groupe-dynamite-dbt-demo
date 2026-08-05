@@ -1,0 +1,226 @@
+version: 2.1
+
+# =============================================================================
+# Groupe Dynamite dbt Core + Snowflake CI
+# =============================================================================
+# Two workflows, selected by branch via MODERN expression-based `when:` blocks
+# (pipeline values) -- NOT the deprecated `filters.branches` maps:
+#
+#   * pr    -> every branch EXCEPT main (offline gates + real Snowflake build in
+#             a disposable per-PR schema, then schema cleanup).
+#   * main  -> main ONLY (dbt build into DEV, manual approval, dbt build into
+#             PROD).
+#
+# Only `<< pipeline.git.branch >>` gates config compilation. That value is
+# populated under the GitHub App integration, so config compilation never
+# depends on PR-only event fields (PR url / number are read at RUN time inside
+# job steps from CircleCI env vars, never at compile time).
+#
+# Reruns: CircleCI supports "Rerun from failed" at the JOB boundary -- a failed
+# job (and everything downstream) is re-executed from the start of that job.
+# There is NO step-level dbt resume and NO automatic rerun here: `dbt build`
+# always starts fresh, and a human triggers the rerun. To resume a partial dbt
+# run you would instead rerun the whole job (optionally using dbt's own
+# `--select result:error+` locally); this config does not attempt that.
+# =============================================================================
+
+executors:
+  python:
+    docker:
+      - image: cimg/python:3.12
+
+commands:
+  setup:
+    description: "Checkout, install uv, and install locked dependencies."
+    steps:
+      - checkout
+      - run:
+          name: Install uv
+          command: pip install uv==0.11.3
+      - run:
+          name: uv sync --frozen
+          command: uv sync --frozen
+
+  persist_dbt_artifacts:
+    description: >
+      Persist dbt run outputs and logs. store_artifacts runs after a FAILED
+      step (documented CircleCI behavior; it does not run only for killed or
+      timed-out jobs), so these are preserved even when `dbt build` fails.
+    steps:
+      - store_artifacts:
+          path: target/manifest.json
+          destination: target/manifest.json
+          when: always
+      - store_artifacts:
+          path: target/run_results.json
+          destination: target/run_results.json
+          when: always
+      - store_artifacts:
+          path: target/compiled
+          destination: target/compiled
+          when: always
+      - store_artifacts:
+          path: logs
+          destination: logs
+          when: always
+
+jobs:
+  # --- Offline PR gates (NO Snowflake credentials / NO context) --------------
+  validate-model-names:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: Validate model filenames are snake_case
+          command: uv run python scripts/validate_model_names.py models
+
+  python-tests:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: Offline pytest (contract + resolver + config + seed integrity)
+          command: |
+            uv run pytest --junitxml=test-results/pytest/results.xml
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+  sqlfluff:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: SQLFluff lint (Snowflake dialect, offline jinja templater)
+          command: uv run sqlfluff lint models
+
+  dbt-compile:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: Resolve deterministic per-PR schema (PR_...)
+          command: |
+            SCHEMA="$(uv run python scripts/resolve_pr_schema.py)"
+            echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
+            echo "Compiling against PR schema: $SCHEMA"
+      - run:
+          name: dbt compile against Snowflake
+          command: uv run dbt compile --profiles-dir . --project-dir .
+      - store_artifacts:
+          path: target/manifest.json
+          destination: target/manifest.json
+          when: always
+      - store_artifacts:
+          path: target/compiled
+          destination: target/compiled
+          when: always
+      - store_artifacts:
+          path: logs
+          destination: logs
+          when: always
+
+  # --- Real Snowflake PR build/test into a disposable per-PR schema ----------
+  dbt-pr-build:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: Resolve deterministic per-PR schema (PR_...)
+          command: |
+            SCHEMA="$(uv run python scripts/resolve_pr_schema.py)"
+            echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
+            echo "Resolved PR schema: $SCHEMA"
+      - run:
+          name: dbt build & test (seeds + models + tests) in PR schema
+          command: uv run dbt build --profiles-dir . --project-dir .
+      - persist_dbt_artifacts
+
+  # --- Guarded cleanup of the disposable PR schema ---------------------------
+  dbt-pr-cleanup:
+    executor: python
+    steps:
+      - setup
+      - run:
+          name: Resolve the same per-PR schema to drop
+          command: |
+            SCHEMA="$(uv run python scripts/resolve_pr_schema.py)"
+            echo "export DBT_SCHEMA=$SCHEMA" >> "$BASH_ENV"
+            echo "Cleaning up PR schema: $SCHEMA"
+      - run:
+          name: Drop PR_ schema (guarded macro; never DEV/PROD)
+          command: uv run dbt run-operation drop_pr_schema --profiles-dir . --project-dir .
+
+  # --- main promotion: DEV -> manual approval -> PROD ------------------------
+  dbt-main-dev:
+    executor: python
+    environment:
+      DBT_SCHEMA: DEV
+    steps:
+      - setup
+      - run:
+          name: dbt build & test into DEV
+          command: uv run dbt build --profiles-dir . --project-dir .
+      - persist_dbt_artifacts
+
+  dbt-main-prod:
+    executor: python
+    environment:
+      DBT_SCHEMA: PROD
+    steps:
+      - setup
+      - run:
+          name: dbt build & test into PROD
+          command: uv run dbt build --profiles-dir . --project-dir .
+      - persist_dbt_artifacts
+
+workflows:
+  # PR workflow: runs on every branch EXCEPT main.
+  pr:
+    when:
+      not:
+        equal: [main, << pipeline.git.branch >>]
+    jobs:
+      - validate-model-names
+      - python-tests
+      - sqlfluff
+      - dbt-compile:
+          context:
+            - snowflake-dbt-demo
+      - dbt-pr-build:
+          # Snowflake credentials come ONLY from this context.
+          context:
+            - snowflake-dbt-demo
+          requires:
+            - validate-model-names
+            - python-tests
+            - sqlfluff
+            - dbt-compile
+      - dbt-pr-cleanup:
+          context:
+            - snowflake-dbt-demo
+          # Modern flexible requires: run once dbt-pr-build reaches a TERMINAL
+          # status (success, failed, canceled, unauthorized, or not_run) so the
+          # disposable schema is always cleaned up, even after a failed build.
+          requires:
+            - dbt-pr-build: terminal
+
+  # main promotion workflow: runs on main ONLY.
+  main:
+    when:
+      equal: [main, << pipeline.git.branch >>]
+    jobs:
+      - dbt-main-dev:
+          context:
+            - snowflake-dbt-demo
+      - hold-promote-prod:
+          type: approval
+          requires:
+            - dbt-main-dev
+      - dbt-main-prod:
+          context:
+            - snowflake-dbt-demo
+          requires:
+            - hold-promote-prod

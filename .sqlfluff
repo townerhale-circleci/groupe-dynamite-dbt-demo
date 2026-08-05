@@ -1,0 +1,42 @@
+[sqlfluff]
+# Snowflake dialect. Use the Jinja templater with dbt builtins so models lint
+# offline (no warehouse / dbt connection required): ref(), source(), config(),
+# var(), and env_var() are stubbed by apply_dbt_builtins.
+dialect = snowflake
+templater = jinja
+max_line_length = 120
+# Wildcard expansion cannot be resolved offline; enforce explicit columns only
+# in the outermost query (handled by writing explicit final selects).
+exclude_rules = RF02, RF03, ST05
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 4
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = true
+
+# --- Casing & style: lowercase keywords / identifiers, snake_case ------------
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:convention.not_equal]
+preferred_not_equal_style = c_style
+
+[sqlfluff:rules:aliasing.table]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+aliasing = explicit

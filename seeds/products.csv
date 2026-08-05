@@ -1,0 +1,11 @@
+product_id,brand_id,sku,product_name,category,unit_price,unit_cost
+1,1,GAR-TSHIRT-001,Garage Boyfriend Tee,Tops,24.95,8.50
+2,1,GAR-JEAN-014,Garage High-Rise Jean,Bottoms,59.95,22.00
+3,1,GAR-HOOD-007,Garage Cozy Hoodie,Outerwear,64.95,24.00
+4,1,GAR-DRESS-021,Garage Slip Dress,Dresses,49.95,18.00
+5,1,GAR-ACC-003,Garage Logo Cap,Accessories,19.95,5.50
+6,2,DYN-BLZR-002,Dynamite Tailored Blazer,Outerwear,99.95,38.00
+7,2,DYN-PANT-010,Dynamite Wide-Leg Pant,Bottoms,69.95,25.00
+8,2,DYN-TOP-018,Dynamite Satin Cami,Tops,39.95,12.00
+9,2,DYN-DRESS-030,Dynamite Midi Dress,Dresses,89.95,31.00
+10,2,DYN-ACC-005,Dynamite Leather Belt,Accessories,34.95,9.50

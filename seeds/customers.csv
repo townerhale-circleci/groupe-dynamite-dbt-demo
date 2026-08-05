@@ -1,0 +1,9 @@
+customer_id,brand_id,first_name,last_name,email,city,province,loyalty_tier,signup_date
+1,1,Emma,Tremblay,emma.tremblay@example.com,Montreal,QC,gold,2020-05-10
+2,1,Olivia,Gagnon,olivia.gagnon@example.com,Toronto,ON,silver,2021-08-22
+3,1,Chloe,Roy,chloe.roy@example.com,Laval,QC,none,2023-01-15
+4,1,Sophia,Bouchard,sophia.bouchard@example.com,Quebec City,QC,silver,2022-03-30
+5,2,Mia,Cote,mia.cote@example.com,Vancouver,BC,gold,2019-11-03
+6,2,Ava,Fortin,ava.fortin@example.com,Ottawa,ON,none,2023-06-18
+7,2,Isabella,Gauthier,isabella.gauthier@example.com,Montreal,QC,silver,2021-02-27
+8,2,Charlotte,Morin,charlotte.morin@example.com,Calgary,AB,gold,2020-09-12

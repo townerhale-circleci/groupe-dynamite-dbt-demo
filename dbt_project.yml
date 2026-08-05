@@ -1,0 +1,36 @@
+name: "groupe_dynamite"
+version: "0.1.0"
+config-version: 2
+
+# Connection profile (see profiles.yml). Reads only environment variables.
+profile: "groupe_dynamite"
+
+# Project directory layout.
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+# Python (pytest) tests live in ./tests; dbt singular tests would live here.
+test-paths: ["dbt_tests"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# ---------------------------------------------------------------------------
+# Seeds emulate the raw Snowflake source tables landed by ingestion tooling.
+# ---------------------------------------------------------------------------
+seeds:
+  groupe_dynamite:
+    +quote_columns: false
+
+# ---------------------------------------------------------------------------
+# Models. Staging = 1:1 cleaned views over seeds; marts = curated tables.
+# ---------------------------------------------------------------------------
+models:
+  groupe_dynamite:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

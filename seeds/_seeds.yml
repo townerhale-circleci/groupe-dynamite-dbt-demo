@@ -1,0 +1,244 @@
+version: 2
+
+# ---------------------------------------------------------------------------
+# Seeds emulate the raw source tables that ingestion tooling would normally
+# land in Snowflake (POS, ecommerce, mobile/loyalty, inventory feeds). They are
+# small and synthetic but maintain full referential integrity so the demo runs
+# end to end without a live warehouse connection during authoring.
+# ---------------------------------------------------------------------------
+seeds:
+  - name: brands
+    description: "Source: brand master. Garage and Dynamite banners."
+    columns:
+      - name: brand_id
+        description: Surrogate primary key for the brand.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_code
+        description: Short brand code (GAR, DYN).
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_name
+        description: Human-readable brand name.
+        data_tests:
+          - not_null
+
+  - name: stores
+    description: "Source: store master, including physical stores and online banners."
+    columns:
+      - name: store_id
+        description: Surrogate primary key for the store.
+        data_tests:
+          - not_null
+          - unique
+      - name: store_name
+        description: Display name of the store or online banner.
+        data_tests:
+          - not_null
+      - name: brand_id
+        description: Owning brand.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('brands')
+                field: brand_id
+      - name: store_type
+        description: Physical store or online banner.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["physical", "online"]
+
+  - name: products
+    description: "Source: product / SKU master."
+    columns:
+      - name: product_id
+        description: Surrogate primary key for the product.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Owning brand.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('brands')
+                field: brand_id
+      - name: sku
+        description: Stock keeping unit code.
+        data_tests:
+          - not_null
+          - unique
+      - name: category
+        description: Merchandising category.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Tops", "Bottoms", "Dresses", "Outerwear", "Accessories"]
+
+  - name: customers
+    description: "Source: customer master with loyalty tier (mobile/loyalty program)."
+    columns:
+      - name: customer_id
+        description: Surrogate primary key for the customer.
+        data_tests:
+          - not_null
+          - unique
+      - name: brand_id
+        description: Primary brand affinity for the customer.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('brands')
+                field: brand_id
+      - name: email
+        description: Customer email (synthetic).
+        data_tests:
+          - not_null
+      - name: loyalty_tier
+        description: Loyalty program tier.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["none", "silver", "gold"]
+
+  - name: orders
+    description: "Source: order headers across store, ecommerce, and mobile channels."
+    columns:
+      - name: order_id
+        description: Surrogate primary key for the order.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: Ordering customer.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('customers')
+                field: customer_id
+      - name: store_id
+        description: Store (physical or online banner) associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stores')
+                field: store_id
+      - name: channel
+        description: Sales channel for the order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["store", "ecommerce", "mobile"]
+      - name: order_status
+        description: Lifecycle status of the order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["completed", "cancelled", "returned"]
+      - name: order_date
+        description: Date the order was placed.
+        data_tests:
+          - not_null
+
+  - name: order_items
+    description: "Source: order line items with quantity, price, and discount."
+    columns:
+      - name: order_item_id
+        description: Surrogate primary key for the order line.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_id
+        description: Parent order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('orders')
+                field: order_id
+      - name: product_id
+        description: Purchased product.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('products')
+                field: product_id
+
+  - name: returns
+    description: "Source: return transactions tied to order lines."
+    columns:
+      - name: return_id
+        description: Surrogate primary key for the return.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_id
+        description: Order the return belongs to.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('orders')
+                field: order_id
+      - name: order_item_id
+        description: Specific order line being returned.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('order_items')
+                field: order_item_id
+      - name: product_id
+        description: Returned product.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('products')
+                field: product_id
+      - name: return_reason
+        description: Categorized reason for the return.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["size", "defect", "changed_mind", "other"]
+
+  - name: inventory
+    description: "Source: point-in-time inventory snapshot by store and product."
+    columns:
+      - name: inventory_id
+        description: Surrogate primary key for the inventory snapshot row.
+        data_tests:
+          - not_null
+          - unique
+      - name: store_id
+        description: Store holding the inventory.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stores')
+                field: store_id
+      - name: product_id
+        description: Product being counted.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('products')
+                field: product_id
