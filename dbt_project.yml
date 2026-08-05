@@ -5,6 +5,13 @@ config-version: 2
 # Connection profile (see profiles.yml). Reads only environment variables.
 profile: "groupe_dynamite"
 
+# Quote database names so least-privilege personal databases containing
+# characters such as `$` or `@` remain valid Snowflake identifiers.
+quoting:
+  database: true
+  schema: false
+  identifier: false
+
 # Project directory layout.
 model-paths: ["models"]
 seed-paths: ["seeds"]
