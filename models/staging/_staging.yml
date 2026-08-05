@@ -198,10 +198,10 @@ models:
           - not_null
           - non_negative
 
-  - name: Customer_Lifetime_Value
+  - name: customer_lifetime_value
     description: >
-      Demo-only customer lifetime order count with an intentionally invalid
-      uppercase filename. The matching fix branch normalizes the model name.
+      Demo-only customer lifetime order count after normalizing the model name
+      to the repository's lowercase snake_case convention.
     columns:
       - name: customer_id
         description: Customer identifier.
