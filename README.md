@@ -102,6 +102,7 @@ circleci config validate .circleci/config.yml
 ### Connected demo project
 
 - CircleCI project: `gh/townerhale-circleci/groupe-dynamite-dbt-demo`
+  (followed, so GitHub pushes emit CircleCI builds and status updates)
 - Credential context: `snowflake-dbt-demo` (created empty; populate it only
   after the Snowflake service identity is provisioned)
 - GitHub namespace: personal account, so the demo uses a visible manual
