@@ -159,5 +159,5 @@ Never cut by faking speed — don't claim a run finished that didn't. A crisp
 - No secrets shown, typed, or read aloud — not even partially.
 - No `--force` pushes; force-with-lease only, by a human, off-demo.
 - CircleCI and the MCP **never edit code**. Every fix is a human commit + rerun.
-- Don't over-promise: deploy markers, team-restricted contexts, and live PROD
-  are **not** verified yet (see [rehearsal-status.md](rehearsal-status.md)).
+- Don't over-promise deploy markers or team-restricted contexts; those are not
+  verified in this personal-namespace demo.

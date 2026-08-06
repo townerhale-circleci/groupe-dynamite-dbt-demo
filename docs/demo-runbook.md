@@ -9,9 +9,9 @@ Exact, minute-marked script for the live demo. Three moments:
 3. **One branch, main → DEV → manual approval → PROD.**
 
 > **Read first:** [rehearsal-status.md](rehearsal-status.md). Moments 2 and 3
-> require a populated `snowflake-dbt-demo` context and a live Snowflake; both are
-> **unverified** until the [preflight](preflight-checklist.md) passes. If
-> preflight did not pass, run the demo in the degraded form noted in each
+> were verified live, but still require the populated context and trial account.
+> Run the [preflight](preflight-checklist.md) before presenting. If it does not
+> pass, use the degraded form noted in each
 > moment's **Stop condition**, and be honest about what is live vs. narrated.
 
 **Conventions in this script**
@@ -151,7 +151,7 @@ both sides of the gate."
 
 **Stop condition:** If Snowflake/context is unavailable, do **not** fake a PROD
 build. Show a prior successful `main` pipeline if one exists (see
-[rehearsal-status.md](rehearsal-status.md) — currently PROD is **unverified**),
+[rehearsal-status.md](rehearsal-status.md) — pipeline #32 is the baseline),
 or walk the config in `.circleci/config.yml` (`workflows.main`) and narrate the
 DEV → approval → PROD shape. Say clearly it's a walkthrough, not a live run. Do
 not click Approve on a hold you can't complete.
