@@ -157,8 +157,8 @@ Never cut by faking speed — don't claim a run finished that didn't. A crisp
 
 ## 8. Prepared green PR unavailable
 
-**Looks like:** `demo/promotion-ready` is closed, stale, red, or cannot merge
-without an owner bypass.
+**Looks like:** prepared PR #8 (`demo/promotion-ready`) is closed, stale, red,
+or cannot merge without an owner bypass.
 
 **Recover:**
 - Do not create or repair a PR live.

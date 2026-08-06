@@ -169,7 +169,7 @@ One branch (`main`), one promotion path with a human gate.
 - `▶` "The failed checks blocked the unsafe changes. Now this prepared green PR
   shows the block releasing: every required status is green, so it can merge to
   the same protected `main` branch."
-- `🖱` Merge the prepared `demo/promotion-ready` PR into `main`. Do not use an
+- `🖱` Merge prepared PR #8 (`demo/promotion-ready`) into `main`. Do not use an
   owner bypass. `▶` "Required reviewers and CODEOWNERS are configured on the
   GitHub side in a customer organization; this prototype is intentionally
   proving the required-status enforcement."

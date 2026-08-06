@@ -94,7 +94,7 @@ done
 - PRs #1 and #6 are merged and the scenarios now target `main`.
   `feature/build-demo` can be deleted when it is no longer needed as historical
   rehearsal evidence.
-- Close the prepared `demo/promotion-ready` PR after the demo if it was not
+- Close prepared PR #8 (`demo/promotion-ready`) after the demo if it was not
   merged, then delete that branch.
 - **Do not delete `main`.**
 

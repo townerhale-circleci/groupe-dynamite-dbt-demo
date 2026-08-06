@@ -146,7 +146,7 @@ In the CircleCI UI for `gh/townerhale-circleci/groupe-dynamite-dbt-demo`:
   Pass gate: the offline three post green on a healthy branch; the credentialed
   checks appear (state depends on whether the context is populated).
 
-- **C4.** The prepared `demo/promotion-ready` PR exists and all five required
+- **C4.** Prepared PR #8 (`demo/promotion-ready`) exists and all five required
   checks are green. Pass gate: it can merge without an owner bypass. Keep it
   open until Moment 4.
 
