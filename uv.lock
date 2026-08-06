@@ -582,8 +582,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dbt-core", specifier = ">=1.9,<2.0" },
-    { name = "dbt-snowflake", specifier = ">=1.9,<2.0" },
+    { name = "dbt-core", specifier = ">=1.10,<2.0" },
+    { name = "dbt-snowflake", specifier = ">=1.10,<2.0" },
     { name = "pytest", specifier = ">=8.0,<9.0" },
     { name = "pyyaml", specifier = ">=6.0,<7.0" },
     { name = "sqlfluff", specifier = ">=3.3,<4.0" },
