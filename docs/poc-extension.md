@@ -118,7 +118,8 @@ verified end-to-end. They are **not** implemented or verified in this repo.
 | Step Functions / MWAA | ❌ | orchestrator ↔ CI integration design |
 | Deploy markers | ❌ | add only after verified PROD promotion |
 
-Lead with what is proven offline: the pipeline/config shape, deterministic
-checks, and explicit approval definition. Treat the live credential boundary,
-Snowflake builds, and human-gated PROD execution as POC verification work until
-the rehearsal status moves them to verified.
+Lead with what is verified live: required CircleCI statuses on protected
+`main`, the credential boundary, disposable Snowflake PR builds and cleanup,
+actionable artifacts, job-boundary reruns, and DEV → human approval → PROD.
+Treat customer-specific authentication, required-review policy, restricted
+contexts/security groups, and production orchestration as POC design work.
