@@ -5,7 +5,8 @@ Exact, minute-marked script for the live demo. Four moments:
 1. **Blocked unsafe PR** — the customer's uppercase-name example produces a
    visibly blocked merge on one protected branch.
 2. **Actionable failure with artifacts** — a real dbt/Snowflake build failure,
-   read from `run_results.json` + `logs/`, fixed by a human, rerun to green.
+   read from `run_results.json` + `logs/`, fixed by a human, then green in a
+   fresh pipeline.
 3. **The same failure in Cursor** — CircleCI MCP brings the evidence into the
    developer's IDE without editing code.
 4. **One branch, main → DEV → manual approval → PROD.**
@@ -32,6 +33,9 @@ Exact, minute-marked script for the live demo. Four moments:
   branches. They do not. One protected `main` branch can block unsafe changes,
   then promote the same commit through a visible DEV stage and a human-gated
   PROD stage. I'll prove that end to end."
+- `🖱` Show completed pipeline #35 for 15 seconds: one `main` workflow, DEV
+  success, named approval, PROD success. `▶` "That is the end state. Now I'll
+  prove how an unsafe change is stopped before it can enter that path."
 - `▶` "We'll also use your two exact failure examples: an uppercase model name
   and a Snowflake cast error. Then I'll bring the failure into Cursor so the
   developer does not have to leave the IDE to start the investigation."
@@ -84,16 +88,20 @@ file). Do **not** claim the PR was auto-blocked — describe it as the failing c
 
 ---
 
-## 4:30 – 9:00 — Moment 2: Exact failure, human fix, clean rerun
+## 4:30 – 9:00 — Moment 2: Exact failure, human fix, clean pipeline
 
 Scenario branch: `demo/fail-invalid-cast` (PR #4). Offline gates pass; the real
 `dbt-pr-build` fails at Snowflake on a bad `CAST`. Artifacts make the failure
-self-explanatory, a human fixes it, and we rerun to green.
+self-explanatory, a human fixes it, and a fresh pipeline goes green.
 
+- `▶` "Rohit, when a dbt or Snowflake job turns red today, what steps do you take
+  from seeing the failure to identifying the exact column?" **Pause. Mirror his
+  answer in the close for this moment.**
 - `🖱` Open PR #4 → its failed CircleCI `pr` pipeline. Confirm
   `dbt-pr-cleanup` is already **green before pushing anything**.
 - `▶` "The old run has finished cleanup, so it is safe to push the prepared
-  human fix. We never overlap two runs of the same PR schema."
+  human fix. This prototype relies on that operator guard because it does not
+  automatically serialize repeated pushes to the same PR schema."
 - `⌨` Start the prepared repair immediately, then explain the evidence while the
   new pipeline runs:
   - `git fetch origin`
@@ -115,21 +123,24 @@ self-explanatory, a human fixes it, and we rerun to green.
 - `▶` "That is the model, file, Snowflake error, exact column, and offending
   value. CircleCI did not edit the code; it preserved the evidence so a human
   could make the right fix."
-- `🖱` Return to the fresh pipeline. `▶` "CircleCI reruns from the failed **job**
-  boundary; it does not resume halfway through one `dbt build` command and it
-  does not silently self-heal." Watch `dbt-pr-build` go **green**.
+- `🖱` Return to the fresh pipeline. `▶` "The fix push started a new PR pipeline,
+  so `dbt build` starts clean. Separately, CircleCI supports an
+  operator-authorized rerun from failed **jobs**; neither path resumes halfway
+  through one `dbt build` command or silently self-heals." Watch
+  `dbt-pr-build` go **green**.
 - `🖱` Show `dbt-pr-cleanup` dropped the prefixed PR schema: `▶` "The disposable
   schema is torn down automatically after a started build finishes, so no PR
   leaves residue in Snowflake."
-- **Pause on the green rerun and cleanup.**
+- **Pause on the green fresh pipeline and cleanup.**
 
-**Mini-close:** "Rohit, today you go back into dbt, locate the error, and rerun
-the command from the beginning. Given this exact node, column, and Snowflake
-message plus a job-boundary rerun, how would that change your failure workflow?"
+**Mini-close:** "Rohit, you just described [repeat his actual steps]. Given this
+exact node, column, and Snowflake message plus a clean pipeline after the human
+fix, how would that change your failure workflow?"
 
 **Stop condition:** If the fresh run can't finish inside the window, stop at
 "green offline gates + artifacts explaining the failure" and state that the fix
-+ rerun is the same one-command fast-forward you'd do live — don't wait past
+and fresh pipeline use the same one-command fast-forward you'd do live — don't
+wait past
 8:30. If Snowflake auth fails (context not populated), this becomes a *narrated*
 failure: show the offline gates green and the credentialed job failing on a
 connection error, and pivot to [recovery-fallback.md](recovery-fallback.md) →
@@ -140,6 +151,8 @@ failure.
 
 ## 9:00 – 10:30 — Moment 3: The same evidence inside Cursor
 
+- `▶` "Ravi, when a developer sees CI fail, which tool are they usually in, and
+  how often do they leave it to investigate?" **Pause and use his answer.**
 - `▶` "Ravi, the artifact solves the root-cause question. You also asked whether
   the developer can get that context without leaving Cursor."
 - `🖱` In Cursor, ask CircleCI MCP to identify the invalid-cast failure and
@@ -166,6 +179,8 @@ would disappear for your developers?"
 
 One branch (`main`), one promotion path with a human gate.
 
+- `▶` "Haythem, what is the current signal that a change is ready for DEV, and
+  who is allowed to move it toward PROD?" **Pause and use his answer.**
 - `▶` "The failed checks blocked the unsafe changes. Now this prepared green PR
   shows the block releasing: every required status is green, so it can merge to
   the same protected `main` branch."
@@ -175,9 +190,9 @@ One branch (`main`), one promotion path with a human gate.
   proving the required-status enforcement."
 - `▶` "That merge starts a different workflow — DEV first, then a manual hold,
   then PROD."
-- `🖱` Open the `main` pipeline. Show `dbt-main-dev` building into the **DEV**
-  schema and going green. `🖱` Open its Artifacts to show `run_results.json` for
-  the DEV build.
+- `🖱` Copy PR #8's merge SHA, then open the `main` pipeline for that exact
+  commit. Show `dbt-main-dev` building into the **DEV** schema and going green.
+  `🖱` Open its Artifacts to show `run_results.json` for the DEV build.
 - `▶` "That is your **testing flag** turning green and your **DEV flag** becoming
   visible. The next job is a manual approval hold — `hold-promote-prod`."
 - `🖱` Click `hold-promote-prod` → **Approve**. `▶` "That click is the audit
@@ -187,8 +202,9 @@ One branch (`main`), one promotion path with a human gate.
   personal namespace proves the hold, not that team restriction."
 - `🖱` Show `dbt-main-prod` building into **PROD** and going green; open its
   artifacts.
-- `▶` "That is your **deployed flag**: the same tested commit reached PROD
-  through a visible human gate, with artifacts at each stage."
+- `▶` "That green PROD job is the **deployed flag** you asked for inside this
+  workflow: the same tested commit reached PROD through a visible human gate.
+  It is not a CircleCI Deploys or Release marker."
 - **Pause on the complete workflow graph.**
 
 **Mini-close:** "Ravi, you asked whether one branch can give you the same
@@ -210,7 +226,7 @@ not click Approve on a hold you can't complete.
 - `▶` "The sentence you can take to your director is: We can run dbt Core on
   CircleCI with one protected main branch — bad SQL cannot merge, developers see
   the exact model and column that failed in Cursor, and nothing reaches PROD
-  without a human gate — without dbt Cloud's per-seat restriction."
+  without a human gate as you move away from dbt Cloud."
 - `▶` "The next step is one repository, one representative dbt model, one style
   rule, one authored data test, one safe Snowflake CI target, and one
   DEV-to-PROD path."
@@ -218,8 +234,13 @@ not click Approve on a hold you can't complete.
   repository, is that enough for you, Haythem, and Rohit to call the POC
   technically successful?"
 - **Stop and wait.** If yes: "Who owns the dbt Core branch, Snowflake CI identity,
-  GitHub protection, and approver group on your side?" Hand the commercial next
-  step to Fields.
+  GitHub protection, and approver group on your side? Who will confirm the
+  director's decision criteria, and by what date?" Hand the commercial next step
+  to Fields (AE).
+
+**After the call:** Hold a 10-minute debrief with Fields. Towner records the
+technical-win outcome, unanswered questions, and demo debt; Fields owns the
+customer POC follow-up and date.
 
 ---
 
@@ -253,7 +274,7 @@ gate."
 |------|--------|---------------------|
 | 0:00–1:30 | Agreement | one-branch answer + Haythem validation |
 | 1:30–4:30 | Blocked unsafe PR (#3) | `BLOCKED`, two red gates, no context |
-| 4:30–9:00 | Actionable failure (#4) | exact artifact, human fix, green rerun, cleanup |
+| 4:30–9:00 | Actionable failure (#4) | exact artifact, human fix, green fresh pipeline, cleanup |
 | 9:00–10:30 | Cursor MCP | failed model/column/value in the IDE |
 | 10:30–15:30 | green merge → DEV → approval → PROD | testing/DEV/deployed flags |
 | 15:30–17:00 | Close | POC success criterion + owners |
