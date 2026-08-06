@@ -6,8 +6,9 @@ degraded form (see [demo-runbook.md](demo-runbook.md) stop conditions and
 [recovery-fallback.md](recovery-fallback.md)) — do not improvise live.
 
 > **No secrets anywhere.** CI credentials live only in the CircleCI
-> `snowflake-dbt-demo` context; local validation uses browser SSO in Snowflake's
-> credential store. Confirm names and connectivity, never reveal values.
+> `snowflake-dbt-demo` context; local Snowflake validation uses the same
+> key-pair service identity through a gitignored `.env`. Confirm names and
+> connectivity, never reveal values.
 
 ## Names you will need (verify, don't guess)
 
@@ -86,16 +87,34 @@ done
 ```
 
 **Pass gate:** all four `demo/fail-*` and all four `demo/fix-*` branches exist,
-and each fail branch's tip SHA is recorded.
+each fail branch's tip SHA is recorded, and each fix branch remains a
+fast-forward repair of its fail branch:
+
+```bash
+for b in uppercase-model invalid-cast broken-reference business-rule; do
+  git merge-base --is-ancestor \
+    "origin/demo/fail-$b" "origin/demo/fix-$b"
+done
+```
+
+Each command must exit 0.
 **Fail gate:** a fail branch already points at its fixed state (a teammate ran a
 rehearsal and didn't restore) → see [recovery-fallback.md](recovery-fallback.md)
 → "Demo branch already fixed" and restore it with `--force-with-lease` **before**
 the demo.
 
-> Base note: the four scenario PRs (#2 business rule, #3 uppercase, #4 invalid
-> cast, #5 broken reference) currently target `feature/build-demo`. After the
-> implementation PR (#1) merges to `main`, retarget them to `main` — see
-> [scenario-catalog.md](scenario-catalog.md).
+Confirm the four scenario PRs (#2 business rule, #3 uppercase, #4 invalid cast,
+#5 broken reference) are **ready for review**, target `main`, and are up to date
+with `main`. Primary proof:
+
+```bash
+gh pr view 3 --json baseRefName,isDraft,mergeStateStatus
+gh pr view 4 --json baseRefName,isDraft,mergeStateStatus
+```
+
+**Pass gate:** `baseRefName` is `main`, `isDraft` is `false`, and
+`mergeStateStatus` is `BLOCKED` for both primary scenarios. A failing required
+CircleCI status—not a draft or stale base—must be the visible reason.
 
 ---
 
@@ -127,9 +146,13 @@ In the CircleCI UI for `gh/townerhale-circleci/groupe-dynamite-dbt-demo`:
   Pass gate: the offline three post green on a healthy branch; the credentialed
   checks appear (state depends on whether the context is populated).
 
+- **C4.** The prepared `demo/promotion-ready` PR exists and all five required
+  checks are green. Pass gate: it can merge without an owner bypass. Keep it
+  open until Moment 4.
+
 ---
 
-## D. Snowflake reachability (only if doing live Moments 2 & 3)
+## D. Snowflake reachability (only if doing live Moments 2 & 4)
 
 You are confirming the demo identity can connect and that the target objects
 exist — **not** reading any secret. Do this from a trusted machine using your
@@ -154,18 +177,22 @@ worksheet.
   and are safe to overwrite for the demo.
 
 **Pass gate:** D2 `dbt debug` reports "All checks passed!" and connection OK.
-**Fail gate:** any auth/permission error → Moments 2 & 3 go to their narrated
+**Fail gate:** any auth/permission error → Moments 2 & 4 go to their narrated
 fallback; see [recovery-fallback.md](recovery-fallback.md). The rehearsal
 baseline is verified in [rehearsal-status.md](rehearsal-status.md).
 
 ---
 
-## E. Backup path (MCP) reachable — optional
+## E. Cursor MCP proof reachable — timeboxed and non-load-bearing
 
 - **E1.** In Cursor, confirm the CircleCI MCP can list the project's recent
-  pipelines and read a job's logs/artifacts (read-only). Pass gate: it returns a
-  recent pipeline for the project. This is a *backup* only — see
+  pipelines and read a job's logs/artifacts (read-only to source code). Pass
+  gate: it identifies the invalid-cast model, `PARSED_AMOUNT`, and
+  `not_a_number` from the failed run. See
   [mcp-backup-flow.md](mcp-backup-flow.md).
+- **E2.** Time the interaction. Pass gate: useful failure context appears in
+  90 seconds or less. If it does not, use the runbook's verbal/visual
+  check-down; the verified CircleCI artifact remains the core proof.
 
 ---
 
@@ -173,10 +200,12 @@ baseline is verified in [rehearsal-status.md](rehearsal-status.md).
 
 | Capability | Needs | Go if… |
 |------------|-------|--------|
-| Moment 1 (blocked PR) | A1–A6, C1, C3 | offline gates green locally + on CI |
+| Moment 1 (blocked PR) | A1–A6, C1, C3 | PR #3 is ready, current, and `BLOCKED` |
 | Moment 2 (actionable failure) | + B, C2, D2 | context populated + Snowflake connects |
-| Moment 3 (DEV→approval→PROD) | + D1, D3 | DEV/PROD reachable |
-| MCP backup | E1 | optional; only after the core demo |
+| Moment 3 (Cursor context) | + E1–E2 | exact failure appears within 90 seconds |
+| Moment 4 (green merge→DEV→approval→PROD) | + C4, D1, D3 | green PR + DEV/PROD reachable |
 
-If Moment 2/3 prerequisites fail, you can still deliver Moment 1 live and
-**narrate** 2 and 3 truthfully from config + the diagram. Say so out loud.
+If Moment 2/4 prerequisites fail, deliver the verified portions live and
+**narrate** the unavailable portion from pipeline #35 + the diagram. If Moment
+3 fails, drop to its verbal/visual check-down without weakening Moments 1, 2,
+or 4. Say what is live and what is a walkthrough.

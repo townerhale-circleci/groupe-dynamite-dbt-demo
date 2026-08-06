@@ -116,8 +116,8 @@ circleci config validate .circleci/config.yml
 
 Operator-facing docs live in [`docs/`](docs/README.md):
 
-- [Demo runbook](docs/demo-runbook.md) — exact 15-minute script (blocked unsafe
-  PR → actionable failure with artifacts → main DEV → approval → PROD).
+- [Demo runbook](docs/demo-runbook.md) — exact 17-minute script (blocked unsafe
+  PR → actionable failure → Cursor context → green merge → DEV → approval → PROD).
 - [Architecture](docs/architecture.md) — environment diagram (Mermaid).
 - [Preflight checklist](docs/preflight-checklist.md) — verify before the demo.
 - [Scenario catalog](docs/scenario-catalog.md) — the four failure/fix branches
@@ -127,8 +127,8 @@ Operator-facing docs live in [`docs/`](docs/README.md):
 - [Cleanup](docs/cleanup.md) — tear down schemas, secrets, branches, Snowflake.
 - [POC extension notes](docs/poc-extension.md) — turning the demo into a POC.
 - [Rehearsal status](docs/rehearsal-status.md) — what is verified vs. not.
-- [MCP backup flow](docs/mcp-backup-flow.md) — status/log retrieval and an
-  operator-authorized rerun without source-code edits.
+- [Cursor MCP proof](docs/mcp-backup-flow.md) — timeboxed IDE failure context
+  and an operator-authorized rerun without source-code edits.
 
 ## Running against Snowflake
 

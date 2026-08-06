@@ -22,7 +22,7 @@ Keep this open in a second tab during the demo.
   key stored in the CircleCI context. The Snowflake owner can verify this
   without revealing either key.
 - If it can't be fixed in the moment: pivot. Moment 1 (offline) still runs live.
-  For Moments 2 & 3, **narrate** from `.circleci/config.yml` and the
+  For Moments 2 & 4, **narrate** from `.circleci/config.yml`, pipeline #35, and the
   [architecture diagram](architecture.md).
 
 **Don't say:** that the build succeeded, or that a connection error was "the cast
@@ -34,8 +34,9 @@ what runs when it is."
 ## 2. Missing context variables
 
 **Looks like:** credentialed jobs fail with a missing-env-var error (e.g.
-`DBT_SNOWFLAKE_ACCOUNT` unset) rather than an auth rejection. This is the current
-known state — see [rehearsal-status.md](rehearsal-status.md).
+`DBT_SNOWFLAKE_ACCOUNT` unset) rather than an auth rejection. The populated
+context is verified; this indicates configuration drift from the rehearsal
+baseline in [rehearsal-status.md](rehearsal-status.md).
 
 **Recover:**
 - A person with access adds the missing variable(s) to the `snowflake-dbt-demo`
@@ -136,20 +137,37 @@ force-with-lease pinned to the expected remote SHA, as a deliberate human step.
 
 ## 7. Time pressure
 
-You're running long. Cut in this order, protecting the three moments' core point:
+You're running long. Cut in this order, protecting the four moments' core point:
 
 1. **Drop the alternate scenarios** (#5 broken ref, #2 business rule) — they're
    follow-ups, not the spine.
-2. **Shorten Moment 2's rerun:** stop at "green offline gates + artifacts explain
+2. **Timebox Cursor MCP to 90 seconds.** If it does not return useful evidence,
+   use the verbal/visual check-down and continue; never debug Preview behavior
+   live.
+3. **Shorten Moment 2's rerun:** stop at "green offline gates + artifacts explain
    the failure," state the fix is a one-command fast-forward, and skip watching
    the green rerun.
-3. **Narrate Moment 3** from a prior successful `main` pipeline + the diagram
-   instead of triggering a live promotion — but keep the **approval click** story,
-   it's the punchline.
-4. **Skip the MCP backup** entirely (it's already optional and post-core).
+4. **Narrate Moment 4** from successful `main` pipeline #35 + the diagram instead
+   of triggering a live promotion — but keep the approval-control story.
 
 Never cut by faking speed — don't claim a run finished that didn't. A crisp
 "here's what would happen next, and it's one command" is honest and lands.
+
+---
+
+## 8. Prepared green PR unavailable
+
+**Looks like:** `demo/promotion-ready` is closed, stale, red, or cannot merge
+without an owner bypass.
+
+**Recover:**
+- Do not create or repair a PR live.
+- Open successful `main` pipeline #35 and label the segment a walkthrough.
+- Show DEV → approval → PROD and state that the live merge trigger is
+  unavailable, while the promotion itself is previously verified.
+
+**Don't say:** that the blocked PR released or that you merged live. Do not use
+the owner bypass to manufacture the transition.
 
 ---
 

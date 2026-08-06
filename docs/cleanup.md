@@ -91,8 +91,11 @@ done
 ```
 
 - Close PRs **#2, #3, #4, #5** in GitHub (or let branch deletion auto-close them).
-- Keep `feature/build-demo` until the implementation PR (#1) has merged to `main`;
-  delete it only after #1 lands and you've retargeted/closed the scenarios.
+- PRs #1 and #6 are merged and the scenarios now target `main`.
+  `feature/build-demo` can be deleted when it is no longer needed as historical
+  rehearsal evidence.
+- Close the prepared `demo/promotion-ready` PR after the demo if it was not
+  merged, then delete that branch.
 - **Do not delete `main`.**
 
 This rewrites nothing — deleting a remote branch is not a force operation. Restore
