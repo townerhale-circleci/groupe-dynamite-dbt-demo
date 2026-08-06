@@ -73,30 +73,49 @@ _Last updated: 2026-08-05._
 - A real DEV `dbt build` completed successfully in about 19 seconds:
   **146 PASS, 0 WARN, 0 ERROR, 0 SKIP** across 8 seeds, 12 models, and 126 data
   tests.
-- The CircleCI context now contains the seven required variable names with
-  masked values. A live CI run is still required before calling the
-  credentialed CI path verified.
+- The CircleCI context contains the seven required variable names with masked
+  values.
+
+### CircleCI — pipeline #23 (complete credentialed PR path)
+- Offline gates, `dbt-compile`, `dbt-pr-build`, and `dbt-pr-cleanup` all
+  succeeded in dependency order.
+- The build preserved `manifest.json`, `run_results.json`, compiled SQL, and
+  `logs/dbt.log` as downloadable artifacts.
+- A Snowflake metadata query after completion returned zero prefixed PR schemas,
+  proving guarded cleanup removed the disposable build target.
+
+### CircleCI — pipelines #24–#31 (deterministic scenario matrix)
+- Every fail branch failed at its intended boundary: uppercase filename
+  (pipeline #24), invalid Snowflake cast (#26), missing `stg_orderz` ref (#28),
+  and the non-negative business test (#30).
+- Every paired fix branch completed successfully (#25, #27, #29, and #31).
+- Failed runtime builds preserved actionable artifacts. After all eight runs,
+  Snowflake again reported zero disposable PR schemas.
+
+### CircleCI — pipeline #32 (DEV → approval → PROD)
+- `dbt-main-dev` succeeded, then the workflow visibly paused at
+  `hold-promote-prod`; `dbt-main-prod` remained queued and had not started.
+- After explicit operator approval, `dbt-main-prod` succeeded.
+- Snowflake verification found **12 base tables + 8 views** in each DEV and
+  PROD schema; `FCT_DAILY_SALES` contained 15 rows in both.
+
+### Rerun-from-failed rehearsal
+- The invalid-cast workflow was rerun from failed through the CircleCI MCP.
+  Previously successful upstream jobs were retained; `dbt-pr-build` reran,
+  reproduced the deterministic cast failure, and cleanup succeeded.
+- Snowflake reported zero disposable PR schemas after the rerun.
 
 ---
 
 ## ❌ Not yet verified
 
-Do **not** claim these as working until their live CI runs complete.
+The core demo path is verified. Do not claim the following adjacent features:
 
-- **Snowflake live `dbt build`** into a
-  `GROUPE_DYNAMITE_DEMO_PR_…` schema (the real Moment 2 build).
-- **Manual approval hold** (`hold-promote-prod`) exercised end-to-end.
-- **PROD promotion** (`dbt-main-prod` building into
-  `GROUPE_DYNAMITE_DEMO_PROD`).
-- **Artifact retrieval** of a *real* failed build's `run_results.json` / `logs/`
-  (offline jobs' artifacts exist; a credentialed failure's artifacts haven't been
-  produced because the credentialed jobs haven't run).
-- **Rerun-from-failed** at the job boundary against a live build.
-- **PR schema cleanup** (`dbt-pr-cleanup` dropping a real prefixed PR schema
-  after a live build).
-
-To move any of these to ✅, complete [preflight](preflight-checklist.md) sections
-C–D, run it live, and update this page with the concrete result.
+- CircleCI Deploys/Release markers for this non-container dbt deployment.
+- Team-restricted approval/context enforcement; this demo is under a personal
+  GitHub namespace.
+- Dynamic config, Smarter Testing, or Chunk; those remain POC discussion items,
+  not implemented demo capabilities.
 
 ---
 
@@ -133,18 +152,18 @@ required checks and team restrictions.
 | CircleCI config validate | ✅ | offline contract tests pass |
 | Offline CI jobs (pipeline #2) | ✅ | green, no context |
 | Live offline-before-compile ordering | ✅ | pipeline #11; cleanup skipped `not_run` build |
-| Credentialed CI path | ⚠️ | context populated; awaiting a fresh pipeline |
+| Credentialed CI path | ✅ | pipeline #23, complete PR workflow |
 | MCP identifies failing model | ✅ | pipeline #3 + Cursor MCP → `Customer_Lifetime_Value.sql` |
 | Snowflake browser SSO / `dbt debug` | ✅ | connection succeeded |
 | Isolated fallback schemas | ⚠️ | created, but personal DB forbids tables |
 | Trial service-user `dbt debug` | ✅ | key-pair JWT authentication succeeded |
 | Live Snowflake DEV build | ✅ | 146/146 successful |
-| Live Snowflake PR build | ❌ | fresh credentialed CI pipeline required |
-| Approval hold end-to-end | ❌ | needs live `main` run |
-| PROD promotion | ❌ | needs live `main` run |
+| Live Snowflake PR build | ✅ | pipelines #23, #26, #30 and paired fixes |
+| Approval hold end-to-end | ✅ | pipeline #32 visibly paused, then approved |
+| PROD promotion | ✅ | pipeline #32; DEV/PROD objects verified in Snowflake |
 | GitHub enforced merge block | ✅ | strict required checks; PR #1 reported BLOCKED |
-| Failed-build artifact retrieval | ❌ | credentialed jobs haven't run live |
-| Rerun-from-failed (live) | ❌ | needs live build |
-| PR schema cleanup (live) | ❌ | needs live build |
+| Failed-build artifact retrieval | ✅ | invalid-cast `run_results.json`, log, compiled SQL |
+| Rerun-from-failed (live) | ✅ | invalid-cast rerun reproduced failure |
+| PR schema cleanup (live) | ✅ | zero prefixed PR schemas after runs/rerun |
 
 Legend: ✅ verified · ⚠️ verified-with-caveat · ❌ not yet verified.
