@@ -62,7 +62,7 @@ main story, and never claim it edits code or "self-heals" CI.
 - Read-only with respect to your repository. It may request a CircleCI rerun,
   but it never changes source code.
 - Not a substitute for the CircleCI UI in the core demo — it's the fallback.
-- Verified today: MCP retrieval **identified the failing model** from a real
-  pipeline. Retrieving a *credentialed failed build's* artifacts end-to-end is
-  **unverified** (credentialed jobs haven't run live) — see
-  [rehearsal-status.md](rehearsal-status.md). Don't over-claim.
+- Verified today: MCP retrieval identified real failures, exposed the
+  credentialed build evidence, and requested an operator-authorized
+  rerun-from-failed. The rerun reproduced the error and completed guarded
+  cleanup. It still never edits source code.

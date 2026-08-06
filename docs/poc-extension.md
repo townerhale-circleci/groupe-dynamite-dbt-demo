@@ -101,9 +101,8 @@ verified end-to-end. They are **not** implemented or verified in this repo.
 
 - Emit a deploy marker **only after** `dbt-main-prod` has *actually* succeeded —
   gated on verified success, never optimistically.
-- Until PROD promotion is verified live (see
-  [rehearsal-status.md](rehearsal-status.md) — currently **unverified**), do
-  **not** promise deploy markers. Scope them as a follow-on once PROD is proven.
+- PROD promotion is verified live, but deploy-marker rendering is not. Do not
+  promise markers until a separate rehearsal confirms them for this dbt flow.
 
 ---
 
