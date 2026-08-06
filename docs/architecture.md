@@ -3,8 +3,8 @@
 Two branch-selected CircleCI workflows drive one dbt Core project against one
 Snowflake database. Credentials live **only** in the `snowflake-dbt-demo`
 context and attach **only** to the five jobs that touch Snowflake. The Cursor
-CircleCI MCP is a **backup** for retrieving status/logs and requesting a rerun
-when the web UI is unavailable — it is never the primary flow and never edits code.
+CircleCI MCP is a rehearsed, 90-second IDE proof for retrieving failure evidence
+and requesting an authorized rerun. It is non-load-bearing and never edits code.
 
 ```mermaid
 flowchart TB
@@ -32,7 +32,7 @@ flowchart TB
     mprod["dbt-main-prod<br/>&rarr; PROD schema"]
   end
 
-  mcp[["Cursor CircleCI MCP<br/>status/logs + rerun backup"]]
+  mcp[["Cursor CircleCI MCP<br/>90s IDE evidence + rerun"]]
 
   dev --> OFF
   OFF --> dc --> prb --> prc
@@ -44,7 +44,7 @@ flowchart TB
   mdev --> appr --> mprod
   mdev --> art
   mprod --> art
-  gh -. "read status/logs when UI down" .-> mcp
+  gh -. "read status/logs in Cursor" .-> mcp
   art -. "retrieve artifacts" .-> mcp
   mcp -. "operator-authorized rerun" .-> prb
 
@@ -76,9 +76,10 @@ flowchart TB
 - **Artifacts.** `run_results.json`, `manifest.json`, `compiled/`, and `logs/`
   are stored after the build step (`when: always`), so they persist even when
   `dbt build` fails — that is what makes a failure *actionable*.
-- **Cursor CircleCI MCP — backup only.** Used **after** the core demo, or if the
-  CircleCI UI is unavailable, to read pipeline status/logs, retrieve artifacts,
-  and request a rerun after a human applies the fix. It never edits code. See
+- **Cursor CircleCI MCP — timeboxed IDE proof.** Used after the actionable
+  artifact to bring the same failure context into Cursor and, when authorized,
+  request a rerun after a human applies the fix. It is Preview, non-load-bearing,
+  and never edits code. See
   [mcp-backup-flow.md](mcp-backup-flow.md).
 
 ## Credential boundary (must stay true)
