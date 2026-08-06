@@ -145,7 +145,7 @@ worksheet.
   ```bash
   # Uses your own local .env (gitignored). Values never printed.
   set -a; source .env; set +a
-  export DBT_SCHEMA=PR_PREFLIGHT
+  export DBT_SCHEMA=GROUPE_DYNAMITE_DEMO_PR_PREFLIGHT
   uv run dbt debug --profiles-dir . --project-dir .
   ```
 
@@ -155,8 +155,8 @@ worksheet.
 
 **Pass gate:** D2 `dbt debug` reports "All checks passed!" and connection OK.
 **Fail gate:** any auth/permission error → Moments 2 & 3 go to their narrated
-fallback; see [recovery-fallback.md](recovery-fallback.md). Currently these are
-**unverified** — see [rehearsal-status.md](rehearsal-status.md).
+fallback; see [recovery-fallback.md](recovery-fallback.md). The rehearsal
+baseline is verified in [rehearsal-status.md](rehearsal-status.md).
 
 ---
 
