@@ -88,6 +88,10 @@ The fix branch is the failing branch plus the repair commit(s), so the failing
 PR branch can be **fast-forwarded** to the fixed state. Fast-forward only — no
 rebase, no force — so it's non-destructive and obvious.
 
+> **Concurrency guard:** each PR uses one deterministic schema keyed to that PR.
+> Before pushing a fix, wait until the failed run's `dbt-pr-cleanup` is green.
+> Otherwise the older run can drop the schema while the newer run is using it.
+
 ```bash
 git fetch origin
 
@@ -152,15 +156,25 @@ Rules for this operation:
 
 ---
 
-## Base retargeting (temporary)
+## PR base and readiness (prepared)
 
-The four scenario PRs currently open against **`feature/build-demo`** because the
-implementation PR (#1) has not landed on `main` yet. Once #1 merges to `main`:
+The four scenario PRs now target protected `main` and are ready for review:
 
-1. In each scenario PR (#2, #3, #4, #5), change the base branch from
-   `feature/build-demo` to `main` (GitHub PR → *Edit* → base branch).
-2. Re-run CI on each so the checks reflect the `main` base.
-3. Confirm the PR diffs still show only the intended single-file change (the
-   retarget shouldn't pull in unrelated commits).
+- #2 — business rule
+- #3 — uppercase model
+- #4 — invalid cast
+- #5 — broken reference
 
-Do the retarget off-demo, verify, then use the branches as above.
+Their fail and fix branches include current `main`, and every fix branch remains
+a fast-forward descendant of its paired fail branch.
+
+Before every rehearsal or live demo:
+
+1. Confirm PRs #3 and #4 still target `main` and are not drafts.
+2. Confirm each is current with `main`; do not let a stale-base warning become a
+   second visible block reason.
+3. Confirm the three-dot diff still shows only the intended scenario change.
+4. Confirm the failing required check makes GitHub report `BLOCKED`.
+
+Do any branch synchronization off-demo. Re-record the failing tip SHA after
+every update so the operator-only restore procedure remains safe.

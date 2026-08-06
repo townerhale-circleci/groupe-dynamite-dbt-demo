@@ -1,30 +1,27 @@
-# MCP backup flow (code-safe, after the core demo)
+# Cursor MCP proof (code-safe, 90-second finish)
 
-The Cursor CircleCI MCP is a **backup**, used **after** the three core moments —
-or if the CircleCI web UI is unavailable — to read pipeline status, logs, and
-artifacts and, with operator approval, request a workflow rerun. It is
-**read-only to your code**: a human applies any fix. Never present it as the
-main story, and never claim it edits code or "self-heals" CI.
+The Cursor CircleCI MCP is a rehearsed, timeboxed proof that the failure context
+can reach the developer's IDE. It reads pipeline status, logs, tests, and
+artifacts and, with operator approval, can request a workflow rerun. It is
+**read-only to source code**: a human applies any fix. Never claim it edits code
+or "self-heals" CI.
 
-> Only run this segment if there's time and interest after the core demo, or as a
-> fallback when the CircleCI UI is down (see
-> [recovery-fallback.md](recovery-fallback.md) §3).
+> Keep this segment under 90 seconds. MCP is Preview and deliberately
+> non-load-bearing: if it is unavailable, use the verbal/visual check-down and
+> continue to the verified promotion flow.
 
 ## The flow
 
-1. **Retrieve status in Cursor.** Ask the MCP for the project's recent pipelines
-   and the status of the relevant workflow/jobs for
+1. **Retrieve the real invalid-cast failure in Cursor.** Ask the MCP for the
+   failed workflow/job for
    `gh/townerhale-circleci/groupe-dynamite-dbt-demo`.
-   - `▶` "Instead of the CircleCI web UI, I'm reading the same pipeline status
-     from Cursor via the CircleCI MCP."
+   - `▶` "Ravi, this is the same real failure you just saw, now inside Cursor."
 
 2. **Read the failing job's logs / artifacts.** Have the MCP pull the failed
-   job's log output and its stored artifacts (`run_results.json`, `logs/`).
-   - This is exactly how the rehearsal identified `Customer_Lifetime_Value.sql`
-     as the offending uppercase model (see
-     [rehearsal-status.md](rehearsal-status.md)).
-   - `▶` "It surfaces the failing node and the reason — the same evidence the
-     artifacts show — without me leaving the editor."
+   job's evidence and identify `fct_invalid_cast_demo`, column
+   `PARSED_AMOUNT`, and value `not_a_number`.
+   - `▶` "It surfaces the model, column, and rejected value without the
+     developer leaving the editor."
 
 3. **Explain the failure.** State what failed and why, in plain terms, from the
    retrieved evidence.
@@ -36,10 +33,11 @@ main story, and never claim it edits code or "self-heals" CI.
    fast-forward in [scenario-catalog.md](scenario-catalog.md)).
    - `▶` "The fix is a human commit. The MCP didn't touch the code."
 
-5. **Rerun.** After the human pushes the fix, use the CircleCI MCP rerun action
-   if it is authorized, or use "Rerun from failed" in CircleCI. This is an
-   explicit operator action, not an automatic retry. Reruns are at the job
-   boundary; `dbt build` starts fresh.
+5. **Explain rerun control.** MCP can request "Rerun from failed" when
+   authorized. This is an explicit operator action, not an automatic retry.
+   Reruns are at the job boundary; `dbt build` starts fresh. Do not trigger an
+   extra rerun merely for this segment if the human fix already started a fresh
+   pipeline.
 
 6. **Confirm green via MCP.** Ask the MCP for the new pipeline's status to confirm
    the job recovered.
@@ -48,9 +46,10 @@ main story, and never claim it edits code or "self-heals" CI.
 ## What to say — and not say
 
 **Do say:**
-- "Backup for status, logs, artifacts, and an operator-authorized rerun."
+- "The same status, logs, artifacts, and operator-authorized rerun are available
+  in Cursor."
 - "A human applies fixes; the MCP never edits code."
-- "Useful when the CircleCI UI is unavailable, or to pull evidence fast."
+- "MCP is Preview; the durable proof is the CircleCI workflow and its artifacts."
 
 **Do not say:**
 - ❌ "CircleCI/the MCP fixed the code."
@@ -61,7 +60,8 @@ main story, and never claim it edits code or "self-heals" CI.
 
 - Read-only with respect to your repository. It may request a CircleCI rerun,
   but it never changes source code.
-- Not a substitute for the CircleCI UI in the core demo — it's the fallback.
+- A vivid IDE finish after the artifact proof, not a prerequisite for merge
+  safety or promotion.
 - Verified today: MCP retrieval identified real failures, exposed the
   credentialed build evidence, and requested an operator-authorized
   rerun-from-failed. The rerun reproduced the error and completed guarded
