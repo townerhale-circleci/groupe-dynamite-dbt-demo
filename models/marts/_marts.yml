@@ -118,3 +118,13 @@ models:
         description: Units returned divided by units sold.
         data_tests:
           - non_negative
+
+  - name: fct_invalid_cast_demo
+    description: >
+      Demo-only model with a deterministic runtime cast failure. The matching
+      fix branch replaces the invalid literal with a numeric value.
+    columns:
+      - name: parsed_amount
+        description: Numeric amount produced by the cast.
+        data_tests:
+          - not_null
