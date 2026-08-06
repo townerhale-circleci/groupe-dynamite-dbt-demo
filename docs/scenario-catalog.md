@@ -88,9 +88,12 @@ The fix branch is the failing branch plus the repair commit(s), so the failing
 PR branch can be **fast-forwarded** to the fixed state. Fast-forward only — no
 rebase, no force — so it's non-destructive and obvious.
 
-> **Concurrency guard:** each PR uses one deterministic schema keyed to that PR.
-> Before pushing a fix, wait until the failed run's `dbt-pr-cleanup` is green.
-> Otherwise the older run can drop the schema while the newer run is using it.
+> **Operator concurrency guard:** each PR uses one deterministic schema keyed to
+> that PR. Before pushing a fix, wait until the failed run's `dbt-pr-cleanup` is
+> green. Otherwise the older run can drop the schema while the newer run is
+> using it. This prototype does not automatically serialize repeated pushes to
+> one PR; add an enforced serialization strategy during the customer POC if
+> parallel pushes are possible.
 
 ```bash
 git fetch origin
@@ -102,7 +105,8 @@ git switch demo/fail-invalid-cast
 # unless it is a clean fast-forward, so you can't accidentally rewrite history.
 git merge --ff-only origin/demo/fix-invalid-cast
 
-# Push the updated PR branch. This triggers a fresh CI run on the PR.
+# Push the updated PR branch. This starts a fresh CI pipeline on the PR; it is
+# not the same operation as CircleCI's operator-triggered "rerun from failed."
 git push origin demo/fail-invalid-cast
 ```
 
