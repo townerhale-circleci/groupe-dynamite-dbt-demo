@@ -1,3 +1,4 @@
+-- Production-ready daily sales mart promoted through the protected main workflow.
 with order_items as (
     select * from {{ ref('stg_order_items') }}
 ),
